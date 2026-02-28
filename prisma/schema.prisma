@@ -1,0 +1,127 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum NodeStatus {
+  online
+  offline
+  degraded
+}
+
+enum JobStatus {
+  queued
+  running
+  success
+  failed
+  canceled
+}
+
+enum JobPriority {
+  low
+  normal
+  high
+  critical
+}
+
+enum EventLevel {
+  info
+  warn
+  error
+}
+
+enum AlertSeverity {
+  low
+  medium
+  high
+  critical
+}
+
+enum AlertStatus {
+  open
+  acknowledged
+  resolved
+  suppressed
+}
+
+model Node {
+  id              String     @id @default(uuid())
+  nodeKey         String     @unique
+  name            String
+  region          String
+  status          NodeStatus @default(online)
+  cpuPct          Int?
+  memPct          Int?
+  latencyMs       Int?
+  lastHeartbeatAt DateTime?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  jobs   Job[]
+  events Event[]
+}
+
+model Job {
+  id           String      @id @default(uuid())
+  jobNo        String      @unique
+  name         String
+  type         String
+  status       JobStatus   @default(queued)
+  priority     JobPriority @default(normal)
+  owner        String
+  payload      Json?
+  errorMessage String?
+  queuedAt     DateTime    @default(now())
+  startedAt    DateTime?
+  finishedAt   DateTime?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  nodeId String?
+  node   Node?   @relation(fields: [nodeId], references: [id])
+
+  events Event[]
+
+  @@index([status, priority, createdAt(sort: Desc)])
+  @@index([nodeId, createdAt(sort: Desc)])
+}
+
+model Event {
+  id        String     @id @default(uuid())
+  eventType String
+  level     EventLevel @default(info)
+  message   String
+  meta      Json?
+  createdAt DateTime   @default(now())
+
+  jobId  String?
+  nodeId String?
+  job    Job?   @relation(fields: [jobId], references: [id])
+  node   Node?  @relation(fields: [nodeId], references: [id])
+
+  @@index([createdAt(sort: Desc)])
+  @@index([level, createdAt(sort: Desc)])
+}
+
+model Alert {
+  id          String        @id @default(uuid())
+  alertNo     String        @unique
+  sourceType  String
+  sourceId    String
+  severity    AlertSeverity
+  status      AlertStatus   @default(open)
+  title       String
+  description String?
+  ackBy       String?
+  ackAt       DateTime?
+  resolvedBy  String?
+  resolvedAt  DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([status, severity, createdAt(sort: Desc)])
+}
