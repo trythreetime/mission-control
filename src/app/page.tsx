@@ -1,6 +1,8 @@
-import { overviewStats, jobs } from "@/lib/mock-data";
+import { getOverviewStats, getRecentJobs } from "@/lib/dashboard";
 
-export default function OverviewPage() {
+export default async function OverviewPage() {
+  const [overviewStats, jobs] = await Promise.all([getOverviewStats(), getRecentJobs()]);
+
   return (
     <div className="space-y-6">
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -16,6 +18,7 @@ export default function OverviewPage() {
       <section className="rounded-xl border border-white/10 bg-white/5 p-4">
         <h2 className="mb-3 text-base font-medium">Recent Jobs</h2>
         <div className="space-y-2 text-sm">
+          {jobs.length === 0 ? <p className="text-slate-400">No jobs found.</p> : null}
           {jobs.map((job) => (
             <div key={job.id} className="flex items-center justify-between rounded-md bg-black/20 px-3 py-2">
               <span>{job.id} · {job.name}</span>

@@ -1,6 +1,5 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -100,8 +99,8 @@ model Event {
 
   jobId  String?
   nodeId String?
-  job    Job?   @relation(fields: [jobId], references: [id])
-  node   Node?  @relation(fields: [nodeId], references: [id])
+  job    Job?    @relation(fields: [jobId], references: [id])
+  node   Node?   @relation(fields: [nodeId], references: [id])
 
   @@index([createdAt(sort: Desc)])
   @@index([level, createdAt(sort: Desc)])
