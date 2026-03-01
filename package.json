@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "prepare": "husky",
-    "commitlint": "commitlint --from HEAD~1 --to HEAD --verbose"
+    "commitlint": "commitlint --from HEAD~1 --to HEAD --verbose",
+    "postinstall": "prisma generate"
   },
   "prisma": {
     "seed": "node --experimental-strip-types prisma/seed.ts"
