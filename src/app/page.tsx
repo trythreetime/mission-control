@@ -4,7 +4,7 @@ import type { ApiResponse } from "@/lib/api-response";
 import type { DashboardJob, OverviewStat } from "@/lib/dashboard";
 import { OverviewLive } from "@/components/overview-live";
 
-export type OverviewApiData = {
+type OverviewApiData = {
   overviewStats: OverviewStat[];
   jobs: DashboardJob[];
 };
@@ -40,6 +40,6 @@ async function getOverviewData(): Promise<OverviewApiData> {
 }
 
 export default async function OverviewPage() {
-  const initialData = await getOverviewData();
-  return <OverviewLive initialData={initialData} />;
+  const data = await getOverviewData();
+  return <OverviewLive initialData={data} />;
 }
