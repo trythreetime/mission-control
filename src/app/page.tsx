@@ -2,8 +2,9 @@ import { headers } from "next/headers";
 
 import type { ApiResponse } from "@/lib/api-response";
 import type { DashboardJob, OverviewStat } from "@/lib/dashboard";
+import { OverviewLive } from "@/components/overview-live";
 
-type OverviewApiData = {
+export type OverviewApiData = {
   overviewStats: OverviewStat[];
   jobs: DashboardJob[];
 };
@@ -39,32 +40,6 @@ async function getOverviewData(): Promise<OverviewApiData> {
 }
 
 export default async function OverviewPage() {
-  const { overviewStats, jobs } = await getOverviewData();
-
-  return (
-    <div className="space-y-6">
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {overviewStats.map((stat) => (
-          <div key={stat.label} className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <p className="text-sm text-slate-400">{stat.label}</p>
-            <p className="mt-1 text-2xl font-semibold text-white">{stat.value}</p>
-            <p className="mt-1 text-xs text-cyan-300">{stat.trend}</p>
-          </div>
-        ))}
-      </section>
-
-      <section className="rounded-xl border border-white/10 bg-white/5 p-4">
-        <h2 className="mb-3 text-base font-medium">Recent Jobs</h2>
-        <div className="space-y-2 text-sm">
-          {jobs.length === 0 ? <p className="text-slate-400">No jobs found.</p> : null}
-          {jobs.map((job) => (
-            <div key={job.id} className="flex items-center justify-between rounded-md bg-black/20 px-3 py-2">
-              <span>{job.id} · {job.name}</span>
-              <span className="text-slate-300">{job.status}</span>
-            </div>
-          ))}
-        </div>
-      </section>
-    </div>
-  );
+  const initialData = await getOverviewData();
+  return <OverviewLive initialData={initialData} />;
 }
