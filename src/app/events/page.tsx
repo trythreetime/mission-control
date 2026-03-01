@@ -1,7 +1,33 @@
-import { getEvents } from "@/lib/dashboard";
+import { headers } from "next/headers";
+
+import type { ApiResponse } from "@/lib/api-response";
+import type { DashboardEvent } from "@/lib/dashboard";
+
+type EventsApiData = {
+  events: DashboardEvent[];
+};
+
+const fallback: EventsApiData = { events: [] };
+
+async function getEventsData(): Promise<EventsApiData> {
+  try {
+    const h = await headers();
+    const host = h.get("x-forwarded-host") ?? h.get("host");
+    const protocol = h.get("x-forwarded-proto") ?? "http";
+    if (!host) return fallback;
+
+    const res = await fetch(`${protocol}://${host}/api/events?limit=100`, { cache: "no-store" });
+    if (!res.ok) return fallback;
+
+    const payload = (await res.json()) as ApiResponse<EventsApiData>;
+    return payload.ok ? payload.data : fallback;
+  } catch {
+    return fallback;
+  }
+}
 
 export default async function EventsPage() {
-  const events = await getEvents(100);
+  const { events } = await getEventsData();
 
   return (
     <section className="rounded-xl border border-white/10 bg-white/5 p-4">

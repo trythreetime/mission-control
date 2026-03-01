@@ -1,7 +1,33 @@
-import { getNodes } from "@/lib/dashboard";
+import { headers } from "next/headers";
+
+import type { ApiResponse } from "@/lib/api-response";
+import type { DashboardNode } from "@/lib/dashboard";
+
+type NodesApiData = {
+  nodes: DashboardNode[];
+};
+
+const fallback: NodesApiData = { nodes: [] };
+
+async function getNodesData(): Promise<NodesApiData> {
+  try {
+    const h = await headers();
+    const host = h.get("x-forwarded-host") ?? h.get("host");
+    const protocol = h.get("x-forwarded-proto") ?? "http";
+    if (!host) return fallback;
+
+    const res = await fetch(`${protocol}://${host}/api/nodes?limit=100`, { cache: "no-store" });
+    if (!res.ok) return fallback;
+
+    const payload = (await res.json()) as ApiResponse<NodesApiData>;
+    return payload.ok ? payload.data : fallback;
+  } catch {
+    return fallback;
+  }
+}
 
 export default async function NodesPage() {
-  const nodes = await getNodes(100);
+  const { nodes } = await getNodesData();
 
   return (
     <section className="rounded-xl border border-white/10 bg-white/5 p-4">
