@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { apiError, apiSuccess } from "@/lib/api-response";
-import { getEvents } from "@/lib/dashboard";
+import { getEvents } from "@/lib/services/events.service";
 
 const querySchema = z.object({
   limit: z.coerce.number().int().min(1).max(500).default(100),

@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 
 import type { ApiResponse } from "@/lib/api-response";
-import type { DashboardEvent } from "@/lib/dashboard";
+import type { DashboardEvent } from "@/lib/services/types";
 
 type EventsApiData = {
   events: DashboardEvent[];

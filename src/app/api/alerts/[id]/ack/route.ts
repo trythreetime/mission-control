@@ -1,5 +1,5 @@
 import { apiError, apiSuccess } from "@/lib/api-response";
-import { acknowledgeAlert } from "@/lib/dashboard";
+import { acknowledgeAlert } from "@/lib/services/alerts.service";
 
 export async function PATCH(
   _request: Request,

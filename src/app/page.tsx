@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 
 import type { ApiResponse } from "@/lib/api-response";
-import type { DashboardJob, OverviewStat } from "@/lib/dashboard";
+import type { DashboardJob, OverviewStat } from "@/lib/services/types";
 import { OverviewLive } from "@/components/overview-live";
 
 type OverviewApiData = {

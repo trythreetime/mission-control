@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import type { ApiResponse } from "@/lib/api-response";
-import type { DashboardJob, OverviewStat } from "@/lib/dashboard";
+import type { DashboardJob, OverviewStat } from "@/lib/services/types";
 
 export type OverviewApiData = {
   overviewStats: OverviewStat[];

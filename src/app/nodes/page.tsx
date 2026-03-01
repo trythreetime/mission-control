@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 
 import type { ApiResponse } from "@/lib/api-response";
-import type { DashboardNode } from "@/lib/dashboard";
+import type { DashboardNode } from "@/lib/services/types";
 
 type NodesApiData = {
   nodes: DashboardNode[];

@@ -2,7 +2,7 @@ import { JobStatus } from "@prisma/client";
 import { z } from "zod";
 
 import { apiError, apiSuccess } from "@/lib/api-response";
-import { getRecentJobs } from "@/lib/dashboard";
+import { getRecentJobs } from "@/lib/services/jobs.service";
 
 const jobsQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(100),

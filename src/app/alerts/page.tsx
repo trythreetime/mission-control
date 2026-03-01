@@ -2,7 +2,7 @@ import { headers } from "next/headers";
 
 import { AlertsListClient } from "@/components/alerts-list-client";
 import type { ApiResponse } from "@/lib/api-response";
-import type { DashboardAlert } from "@/lib/dashboard";
+import type { DashboardAlert } from "@/lib/services/types";
 
 type AlertsApiData = {
   alerts: DashboardAlert[];

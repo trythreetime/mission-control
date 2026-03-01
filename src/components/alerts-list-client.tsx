@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 import type { ApiResponse } from "@/lib/api-response";
-import type { DashboardAlert } from "@/lib/dashboard";
+import type { DashboardAlert } from "@/lib/services/types";
 
 type Props = {
   initialAlerts: DashboardAlert[];

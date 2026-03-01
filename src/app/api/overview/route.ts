@@ -1,5 +1,6 @@
 import { apiError, apiSuccess } from "@/lib/api-response";
-import { getOverviewStats, getRecentJobs } from "@/lib/dashboard";
+import { getOverviewStats } from "@/lib/services/overview.service";
+import { getRecentJobs } from "@/lib/services/jobs.service";
 
 type OverviewPayload = {
   overviewStats: Awaited<ReturnType<typeof getOverviewStats>>;

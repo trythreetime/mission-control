@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { apiError, apiSuccess } from "@/lib/api-response";
-import { getAlerts } from "@/lib/dashboard";
+import { getAlerts } from "@/lib/services/alerts.service";
 
 const querySchema = z.object({
   limit: z.coerce.number().int().min(1).max(200).default(100),

@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 
 import type { ApiResponse } from "@/lib/api-response";
-import type { DashboardJob } from "@/lib/dashboard";
+import type { DashboardJob } from "@/lib/services/types";
 
 type JobsApiData = {
   jobs: DashboardJob[];
