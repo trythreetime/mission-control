@@ -1,7 +1,5 @@
 import "server-only";
 
-import { AlertSeverity, AlertStatus, JobStatus, NodeStatus } from "@prisma/client";
-
 import { db } from "@/lib/db";
 import type { OverviewStat } from "@/lib/services/types";
 
@@ -9,14 +7,14 @@ export async function getOverviewStats(): Promise<OverviewStat[]> {
   const [totalNodes, onlineNodes, totalJobs, queuedJobs, runningJobs, failedJobs, openAlerts, criticalOpenAlerts] =
     await Promise.all([
       db.node.count(),
-      db.node.count({ where: { status: NodeStatus.online } }),
+      db.node.count({ where: { status: "online" } }),
       db.job.count(),
-      db.job.count({ where: { status: JobStatus.queued } }),
-      db.job.count({ where: { status: JobStatus.running } }),
-      db.job.count({ where: { status: JobStatus.failed } }),
-      db.alert.count({ where: { status: AlertStatus.open } }),
+      db.job.count({ where: { status: "queued" } }),
+      db.job.count({ where: { status: "running" } }),
+      db.job.count({ where: { status: "failed" } }),
+      db.alert.count({ where: { status: "open" } }),
       db.alert.count({
-        where: { status: AlertStatus.open, severity: AlertSeverity.critical },
+        where: { status: "open", severity: "critical" },
       }),
     ]);
 

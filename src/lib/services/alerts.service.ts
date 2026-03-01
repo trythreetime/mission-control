@@ -1,7 +1,5 @@
 import "server-only";
 
-import { AlertStatus } from "@prisma/client";
-
 import { db } from "@/lib/db";
 import type { DashboardAlert } from "@/lib/services/types";
 
@@ -29,9 +27,9 @@ export async function getAlerts(limit = 100): Promise<DashboardAlert[]> {
 
 export async function acknowledgeAlert(alertNo: string): Promise<void> {
   await db.alert.updateMany({
-    where: { alertNo, status: AlertStatus.open },
+    where: { alertNo, status: "open" },
     data: {
-      status: AlertStatus.acknowledged,
+      status: "acknowledged",
       ackBy: "rainy",
       ackAt: new Date(),
     },

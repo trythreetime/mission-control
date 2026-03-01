@@ -1,4 +1,3 @@
-import { JobStatus } from "@prisma/client";
 import { z } from "zod";
 
 import { apiError, apiSuccess } from "@/lib/api-response";
@@ -6,7 +5,7 @@ import { getRecentJobs } from "@/lib/services/jobs.service";
 
 const jobsQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(100),
-  status: z.nativeEnum(JobStatus).optional(),
+  status: z.enum(["queued", "running", "success", "failed", "canceled"]).optional(),
 });
 
 export async function GET(request: Request) {

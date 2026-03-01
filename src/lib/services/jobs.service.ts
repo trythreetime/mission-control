@@ -1,22 +1,22 @@
 import "server-only";
 
-import { JobStatus } from "@prisma/client";
-
 import { db } from "@/lib/db";
 import { formatElapsed } from "@/lib/services/shared";
 import type { DashboardJob } from "@/lib/services/types";
 
-function toEta(status: string, queuedAt: Date, startedAt: Date | null, finishedAt: Date | null): string {
+type JobStatusValue = "queued" | "running" | "success" | "failed" | "canceled";
+
+function toEta(status: JobStatusValue, queuedAt: Date, startedAt: Date | null, finishedAt: Date | null): string {
   if (finishedAt) return "--";
-  if (status === JobStatus.running) {
+  if (status === "running") {
     const started = startedAt ?? queuedAt;
     return `${formatElapsed(started)} elapsed`;
   }
-  if (status === JobStatus.queued) return `${formatElapsed(queuedAt)} waiting`;
+  if (status === "queued") return `${formatElapsed(queuedAt)} waiting`;
   return "--";
 }
 
-export async function getRecentJobs(limit = 5, status?: JobStatus): Promise<DashboardJob[]> {
+export async function getRecentJobs(limit = 5, status?: JobStatusValue): Promise<DashboardJob[]> {
   const recentJobs = await db.job.findMany({
     where: status ? { status } : undefined,
     orderBy: { createdAt: "desc" },
