@@ -156,8 +156,9 @@ export async function getOverviewStats(): Promise<OverviewStat[]> {
   ];
 }
 
-export async function getRecentJobs(limit = 5): Promise<DashboardJob[]> {
+export async function getRecentJobs(limit = 5, status?: JobStatus): Promise<DashboardJob[]> {
   const recentJobs = await db.job.findMany({
+    where: status ? { status } : undefined,
     orderBy: { createdAt: "desc" },
     take: limit,
     select: {
