@@ -5,8 +5,8 @@ import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE, setAuthCookies } from "@/lib
 import { SupabaseAuthError, signInWithPassword } from "@/lib/auth/supabase";
 import { ensureProfileForUser } from "@/lib/services/profiles.service";
 
-const LOCAL_ADMIN_USERNAME = process.env.LOCAL_ADMIN_USERNAME ?? "admin";
-const LOCAL_ADMIN_PASSWORD = process.env.LOCAL_ADMIN_PASSWORD ?? "123456";
+const LOCAL_ADMIN_USERNAME = process.env.LOCAL_ADMIN_USERNAME;
+const LOCAL_ADMIN_PASSWORD = process.env.LOCAL_ADMIN_PASSWORD;
 const LOCAL_ADMIN_TOKEN = "mc-local-admin";
 
 const schema = z.object({
@@ -33,6 +33,8 @@ export async function POST(request: Request) {
 
   try {
     if (
+      LOCAL_ADMIN_USERNAME &&
+      LOCAL_ADMIN_PASSWORD &&
       parsed.data.email === LOCAL_ADMIN_USERNAME &&
       parsed.data.password === LOCAL_ADMIN_PASSWORD
     ) {
