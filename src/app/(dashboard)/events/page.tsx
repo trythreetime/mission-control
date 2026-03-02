@@ -14,9 +14,13 @@ async function getEventsData(): Promise<EventsApiData> {
     const h = await headers();
     const host = h.get("x-forwarded-host") ?? h.get("host");
     const protocol = h.get("x-forwarded-proto") ?? "http";
+    const cookieHeader = h.get("cookie");
     if (!host) return fallback;
 
-    const res = await fetch(`${protocol}://${host}/api/events?limit=100`, { cache: "no-store" });
+    const res = await fetch(`${protocol}://${host}/api/events?limit=100`, {
+      cache: "no-store",
+      ...(cookieHeader ? { headers: { cookie: cookieHeader } } : {}),
+    });
     if (!res.ok) return fallback;
 
     const payload = (await res.json()) as ApiResponse<EventsApiData>;

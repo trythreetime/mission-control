@@ -1,4 +1,5 @@
 import { apiError, apiSuccess } from "@/lib/api-response";
+import { requireApiRole } from "@/lib/auth/guards";
 import { getOverviewStats } from "@/lib/services/overview.service";
 import { getRecentJobs } from "@/lib/services/jobs.service";
 
@@ -8,6 +9,11 @@ type OverviewPayload = {
 };
 
 export async function GET() {
+  const session = await requireApiRole("viewer");
+  if (session instanceof Response) {
+    return session;
+  }
+
   try {
     const [overviewStats, jobs] = await Promise.all([getOverviewStats(), getRecentJobs()]);
     const payload: OverviewPayload = { overviewStats, jobs };

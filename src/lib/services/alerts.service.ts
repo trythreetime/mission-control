@@ -25,12 +25,12 @@ export async function getAlerts(limit = 100): Promise<DashboardAlert[]> {
   }));
 }
 
-export async function acknowledgeAlert(alertNo: string): Promise<void> {
+export async function acknowledgeAlert(alertNo: string, acknowledgedBy: string): Promise<void> {
   await db.alert.updateMany({
     where: { alertNo, status: "open" },
     data: {
       status: "acknowledged",
-      ackBy: "rainy",
+      ackBy: acknowledgedBy,
       ackAt: new Date(),
     },
   });

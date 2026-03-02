@@ -16,6 +16,7 @@ async function getJobsData(): Promise<JobsApiData> {
     const requestHeaders = await headers();
     const host = requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host");
     const protocol = requestHeaders.get("x-forwarded-proto") ?? "http";
+    const cookieHeader = requestHeaders.get("cookie");
 
     if (!host) {
       return jobsFallback;
@@ -23,6 +24,7 @@ async function getJobsData(): Promise<JobsApiData> {
 
     const response = await fetch(`${protocol}://${host}/api/jobs?limit=100`, {
       cache: "no-store",
+      ...(cookieHeader ? { headers: { cookie: cookieHeader } } : {}),
     });
 
     if (!response.ok) {

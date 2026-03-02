@@ -19,6 +19,7 @@ async function getOverviewData(): Promise<OverviewApiData> {
     const requestHeaders = await headers();
     const host = requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host");
     const protocol = requestHeaders.get("x-forwarded-proto") ?? "http";
+    const cookieHeader = requestHeaders.get("cookie");
 
     if (!host) {
       return overviewFallback;
@@ -26,6 +27,7 @@ async function getOverviewData(): Promise<OverviewApiData> {
 
     const response = await fetch(`${protocol}://${host}/api/overview`, {
       cache: "no-store",
+      ...(cookieHeader ? { headers: { cookie: cookieHeader } } : {}),
     });
 
     if (!response.ok) {

@@ -7,6 +7,7 @@ import type { DashboardAlert } from "@/lib/services/types";
 
 type Props = {
   initialAlerts: DashboardAlert[];
+  canAcknowledge: boolean;
 };
 
 type AckResponse = {
@@ -14,7 +15,7 @@ type AckResponse = {
   status: "acknowledged";
 };
 
-export function AlertsListClient({ initialAlerts }: Props) {
+export function AlertsListClient({ initialAlerts, canAcknowledge }: Props) {
   const [alerts, setAlerts] = useState<DashboardAlert[]>(initialAlerts);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [hint, setHint] = useState<string | null>(null);
@@ -57,7 +58,7 @@ export function AlertsListClient({ initialAlerts }: Props) {
               <p>
                 Severity: {alert.severity} · Status: {alert.status} · Target: {alert.target}
               </p>
-              {alert.status === "open" ? (
+              {canAcknowledge && alert.status === "open" ? (
                 <button
                   type="button"
                   onClick={() => onAck(alert.id)}

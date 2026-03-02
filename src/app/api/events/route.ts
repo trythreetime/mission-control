@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { apiError, apiSuccess } from "@/lib/api-response";
+import { requireApiRole } from "@/lib/auth/guards";
 import { getEvents } from "@/lib/services/events.service";
 
 const querySchema = z.object({
@@ -8,6 +9,11 @@ const querySchema = z.object({
 });
 
 export async function GET(request: Request) {
+  const session = await requireApiRole("viewer");
+  if (session instanceof Response) {
+    return session;
+  }
+
   const { searchParams } = new URL(request.url);
   const parsed = querySchema.safeParse({
     limit: searchParams.get("limit") ?? undefined,
