@@ -16,7 +16,11 @@ type AuthResponse = {
 
 type Mode = "password" | "otp";
 
-export function LoginForm() {
+type Props = {
+  className?: string;
+};
+
+export function LoginForm({ className }: Props) {
   const [mode, setMode] = useState<Mode>("password");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -34,9 +38,7 @@ export function LoginForm() {
   const handlePasswordLogin = async () => {
     const response = await fetch("/api/auth/password", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
     });
 
@@ -49,9 +51,7 @@ export function LoginForm() {
   const handleOtpRequest = async () => {
     const response = await fetch("/api/auth/otp/request", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
     });
 
@@ -61,15 +61,13 @@ export function LoginForm() {
     }
 
     setOtpSent(true);
-    setHint("OTP sent. Check your email and enter the code.");
+    setHint("验证码已发送，请查看邮箱");
   };
 
   const handleOtpVerify = async () => {
     const response = await fetch("/api/auth/otp/verify", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, token: otpToken }),
     });
 
@@ -103,15 +101,19 @@ export function LoginForm() {
   };
 
   return (
-    <section className="mx-auto mt-16 w-full max-w-md rounded-xl border border-white/10 bg-white/5 p-6">
-      <h1 className="text-xl font-semibold">Sign in to Mission Control</h1>
-      <p className="mt-2 text-sm text-slate-400">Use email/password or email OTP.</p>
+    <section
+      className={`w-full rounded-3xl border border-white/15 bg-gradient-to-b from-white/10 to-white/5 p-7 shadow-[0_24px_80px_rgba(0,0,0,0.45)] backdrop-blur-2xl ${className ?? ""}`}
+    >
+      <h1 className="text-2xl font-semibold tracking-tight text-white">Sign in to Mission Control</h1>
+      <p className="mt-2 text-sm text-slate-300">Secure access for operators and administrators.</p>
 
-      <div className="mt-4 flex gap-2 text-sm">
+      <div className="mt-5 flex gap-2 text-sm">
         <button
           type="button"
-          className={`rounded px-3 py-1 ${
-            mode === "password" ? "bg-cyan-400/20 text-cyan-100" : "bg-white/5 text-slate-300"
+          className={`rounded-lg px-3 py-1.5 transition ${
+            mode === "password"
+              ? "border border-white/20 bg-white/15 text-white"
+              : "bg-white/5 text-slate-300 hover:bg-white/10"
           }`}
           onClick={() => {
             setMode("password");
@@ -122,7 +124,9 @@ export function LoginForm() {
         </button>
         <button
           type="button"
-          className={`rounded px-3 py-1 ${mode === "otp" ? "bg-cyan-400/20 text-cyan-100" : "bg-white/5 text-slate-300"}`}
+          className={`rounded-lg px-3 py-1.5 transition ${
+            mode === "otp" ? "border border-white/20 bg-white/15 text-white" : "bg-white/5 text-slate-300 hover:bg-white/10"
+          }`}
           onClick={() => {
             setMode("otp");
             setHint(null);
@@ -132,7 +136,7 @@ export function LoginForm() {
         </button>
       </div>
 
-      <form className="mt-4 space-y-3" onSubmit={onSubmit}>
+      <form className="mt-5 space-y-3.5" onSubmit={onSubmit}>
         <label className="block text-sm">
           <span className="mb-1 block text-slate-300">账号 / Email</span>
           <input
@@ -140,7 +144,7 @@ export function LoginForm() {
             required
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            className="w-full rounded border border-white/20 bg-black/20 px-3 py-2 text-slate-100 outline-none ring-cyan-300/60 transition focus:ring"
+            className="w-full rounded-xl border border-white/20 bg-black/30 px-3.5 py-2.5 text-slate-100 outline-none ring-white/30 transition focus:ring"
             placeholder="admin 或 you@example.com"
           />
         </label>
@@ -153,7 +157,7 @@ export function LoginForm() {
               required
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              className="w-full rounded border border-white/20 bg-black/20 px-3 py-2 text-slate-100 outline-none ring-cyan-300/60 transition focus:ring"
+              className="w-full rounded-xl border border-white/20 bg-black/30 px-3.5 py-2.5 text-slate-100 outline-none ring-white/30 transition focus:ring"
               placeholder="••••••••"
             />
           </label>
@@ -167,26 +171,20 @@ export function LoginForm() {
               required
               value={otpToken}
               onChange={(event) => setOtpToken(event.target.value)}
-              className="w-full rounded border border-white/20 bg-black/20 px-3 py-2 text-slate-100 outline-none ring-cyan-300/60 transition focus:ring"
+              className="w-full rounded-xl border border-white/20 bg-black/30 px-3.5 py-2.5 text-slate-100 outline-none ring-white/30 transition focus:ring"
               placeholder="123456"
             />
           </label>
         ) : null}
 
-        {hint ? <p className="text-xs text-cyan-300">{hint}</p> : null}
+        {hint ? <p className="text-xs text-cyan-200">{hint}</p> : null}
 
         <button
           type="submit"
           disabled={!canSubmit || busy}
-          className="w-full rounded bg-cyan-400/20 px-3 py-2 font-medium text-cyan-100 transition hover:bg-cyan-400/30 disabled:opacity-60"
+          className="mt-1 w-full rounded-xl border border-white/20 bg-white/10 px-3 py-2.5 font-medium text-white transition hover:bg-white/20 disabled:opacity-60"
         >
-          {busy
-            ? "Please wait..."
-            : mode === "password"
-              ? "Sign in"
-              : otpSent
-                ? "Verify OTP"
-                : "Send OTP"}
+          {busy ? "Please wait..." : mode === "password" ? "Sign in" : otpSent ? "Verify OTP" : "Send OTP"}
         </button>
       </form>
     </section>
