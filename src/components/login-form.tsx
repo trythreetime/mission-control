@@ -18,16 +18,17 @@ type Mode = "password" | "otp";
 
 type Props = {
   className?: string;
+  initialHint?: string;
 };
 
-export function LoginForm({ className }: Props) {
+export function LoginForm({ className, initialHint }: Props) {
   const [mode, setMode] = useState<Mode>("password");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [otpToken, setOtpToken] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [hint, setHint] = useState<string | null>(null);
+  const [hint, setHint] = useState<string | null>(initialHint ?? null);
 
   const canSubmit = useMemo(() => {
     if (!email.trim()) return false;

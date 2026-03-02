@@ -49,9 +49,12 @@ export async function getOptionalAppSession(): Promise<AppSession | null> {
 }
 
 export async function requireAppSession(): Promise<AppSession> {
+  const cookieStore = await cookies();
+  const hasAccessToken = Boolean(cookieStore.get(ACCESS_TOKEN_COOKIE)?.value);
+
   const session = await getOptionalAppSession();
   if (!session) {
-    redirect("/login");
+    redirect(hasAccessToken ? "/login?reason=session_expired" : "/login?reason=auth_required");
   }
 
   return session;

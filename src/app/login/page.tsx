@@ -3,11 +3,24 @@ import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/login-form";
 import { getOptionalAppSession } from "@/lib/auth/session";
 
-export default async function LoginPage() {
+const reasonHintMap: Record<string, string> = {
+  auth_required: "请先登录后再访问控制台。",
+  session_expired: "会话已过期，请重新登录。",
+};
+
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const session = await getOptionalAppSession();
   if (session) {
     redirect("/");
   }
+
+  const params = await searchParams;
+  const reason = typeof params.reason === "string" ? params.reason : undefined;
+  const initialHint = reason ? reasonHintMap[reason] : undefined;
 
   return (
     <main className="relative min-h-screen overflow-hidden px-6 py-10">
@@ -43,7 +56,7 @@ export default async function LoginPage() {
         </section>
 
         <div className="justify-self-end w-full max-w-md">
-          <LoginForm />
+          <LoginForm initialHint={initialHint} />
         </div>
       </div>
     </main>
