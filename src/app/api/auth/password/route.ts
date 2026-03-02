@@ -33,6 +33,7 @@ export async function POST(request: Request) {
 
   try {
     if (
+      process.env.VERCEL_ENV !== "production" &&
       LOCAL_ADMIN_USERNAME &&
       LOCAL_ADMIN_PASSWORD &&
       parsed.data.email === LOCAL_ADMIN_USERNAME &&
@@ -52,7 +53,7 @@ export async function POST(request: Request) {
         maxAge: 60 * 60 * 24 * 30,
         httpOnly: true,
         sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
+        secure: process.env.VERCEL_ENV === "production",
         path: "/",
       });
 
@@ -62,7 +63,7 @@ export async function POST(request: Request) {
         maxAge: 60 * 60 * 24 * 30,
         httpOnly: true,
         sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
+        secure: process.env.VERCEL_ENV === "production",
         path: "/",
       });
 
