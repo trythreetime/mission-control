@@ -16,16 +16,25 @@ body {
     "Microsoft YaHei", sans-serif;
 }
 
+/* Force pointer cursor for interactive controls */
 a,
 button,
 [role="button"],
+[onclick],
+summary,
+label[for],
 input[type="button"],
-input[type="submit"] {
-  cursor: pointer;
+input[type="submit"],
+input[type="reset"],
+input[type="checkbox"],
+input[type="radio"],
+select {
+  cursor: pointer !important;
 }
 
 button:disabled,
 input:disabled,
+select:disabled,
 [aria-disabled="true"] {
-  cursor: not-allowed;
+  cursor: not-allowed !important;
 }
