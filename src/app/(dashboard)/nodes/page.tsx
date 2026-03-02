@@ -34,17 +34,22 @@ export default async function NodesPage() {
   const { nodes } = await getNodesData();
 
   return (
-    <section className="rounded-xl border border-white/10 bg-white/5 p-4">
-      <h2 className="mb-4 text-lg font-semibold">Nodes Monitor</h2>
+    <section className="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-[0_10px_35px_rgba(0,0,0,0.35)]">
+      <h2 className="mb-4 text-lg font-semibold text-white">Nodes Monitor</h2>
       <div className="space-y-3">
         {nodes.length === 0 ? <p className="text-sm text-slate-400">No nodes found.</p> : null}
         {nodes.map((node) => (
-          <div key={node.id} className="rounded-md border border-white/10 bg-black/20 p-3 text-sm">
-            <p className="font-medium">
-              {node.id} · {node.region}
-            </p>
-            <p className="mt-1 text-slate-300">
-              STATUS {node.status} · CPU {node.cpu} · MEM {node.mem} · LAT {node.latency} · heartbeat {node.heartbeat}
+          <div key={node.id} className="rounded-xl border border-white/10 bg-black/30 p-4 text-sm">
+            <div className="mb-2 flex items-center justify-between">
+              <p className="font-medium text-slate-100">
+                {node.id} · {node.region}
+              </p>
+              <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-xs text-slate-200">
+                {node.status}
+              </span>
+            </div>
+            <p className="text-slate-300">
+              CPU {node.cpu} · MEM {node.mem} · LAT {node.latency} · heartbeat {node.heartbeat}
             </p>
           </div>
         ))}
