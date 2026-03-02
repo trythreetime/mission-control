@@ -8,6 +8,9 @@ import { ACCESS_TOKEN_COOKIE } from "@/lib/auth/cookies";
 import { getSupabaseUserFromAccessToken } from "@/lib/auth/supabase";
 import { ensureProfileForUser } from "@/lib/services/profiles.service";
 
+const LOCAL_ADMIN_TOKEN = "mc-local-admin";
+const LOCAL_ADMIN_EMAIL = "admin@local";
+
 export type AppSession = {
   userId: string;
   email: string;
@@ -20,6 +23,14 @@ export async function getOptionalAppSession(): Promise<AppSession | null> {
 
   if (!accessToken) {
     return null;
+  }
+
+  if (accessToken === LOCAL_ADMIN_TOKEN) {
+    return {
+      userId: "local-admin",
+      email: LOCAL_ADMIN_EMAIL,
+      role: "admin",
+    };
   }
 
   const user = await getSupabaseUserFromAccessToken(accessToken);

@@ -134,14 +134,14 @@ export function LoginForm() {
 
       <form className="mt-4 space-y-3" onSubmit={onSubmit}>
         <label className="block text-sm">
-          <span className="mb-1 block text-slate-300">Email</span>
+          <span className="mb-1 block text-slate-300">账号 / Email</span>
           <input
-            type="email"
+            type="text"
             required
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             className="w-full rounded border border-white/20 bg-black/20 px-3 py-2 text-slate-100 outline-none ring-cyan-300/60 transition focus:ring"
-            placeholder="you@example.com"
+            placeholder="admin 或 you@example.com"
           />
         </label>
 
