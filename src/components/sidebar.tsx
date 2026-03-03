@@ -33,6 +33,7 @@ export function Sidebar({ role }: Props) {
             <Link
               key={item.href}
               href={item.href}
+              prefetch={false}
               className={`block rounded-lg px-3 py-2.5 text-sm transition ${
                 active
                   ? "border border-white/15 bg-white/10 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
