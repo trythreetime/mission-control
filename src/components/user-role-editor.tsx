@@ -10,6 +10,7 @@ type Props = {
   userId: string;
   email: string;
   currentRole: UserRole;
+  onUpdated?: (nextRole: UserRole) => void;
 };
 
 type UpdateRoleApiData = {
@@ -21,7 +22,7 @@ type UpdateRoleApiData = {
 
 const roleOptions: UserRole[] = ["viewer", "operator", "admin"];
 
-export function UserRoleEditor({ userId, email, currentRole }: Props) {
+export function UserRoleEditor({ userId, email, currentRole, onUpdated }: Props) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<UserRole>(currentRole);
@@ -69,7 +70,11 @@ export function UserRoleEditor({ userId, email, currentRole }: Props) {
       }
 
       setOpen(false);
-      router.refresh();
+      if (onUpdated) {
+        onUpdated(payload.data.user.role);
+      } else {
+        router.refresh();
+      }
     } catch (updateError) {
       setError(updateError instanceof Error ? updateError.message : "Failed to update role.");
     } finally {

@@ -7,6 +7,15 @@ import { listUsers } from "@/lib/services/users.service";
 
 const USER_ROLES = ["viewer", "operator", "admin"] as const;
 const PROFILE_STATUSES = ["active", "disabled"] as const;
+type ApiProfileStatus = (typeof PROFILE_STATUSES)[number];
+
+function toDbProfileStatus(status: ApiProfileStatus): ProfileStatus {
+  return status === "disabled" ? "inactive" : "active";
+}
+
+function toApiProfileStatus(status: ProfileStatus): ApiProfileStatus {
+  return status === "inactive" ? "disabled" : "active";
+}
 
 const querySchema = z.object({
   query: z.string().trim().optional(),
@@ -43,12 +52,22 @@ export async function GET(request: Request) {
     const data = await listUsers({
       query: parsed.data.query && parsed.data.query.length > 0 ? parsed.data.query : undefined,
       role: parsed.data.role as UserRole | undefined,
-      status: parsed.data.status as ProfileStatus | undefined,
+      status: parsed.data.status ? toDbProfileStatus(parsed.data.status) : undefined,
       page: parsed.data.page,
       pageSize: parsed.data.pageSize,
     });
 
-    return apiSuccess(data);
+    return apiSuccess({
+      ...data,
+      users: data.users.map((user) => ({
+        ...user,
+        status: toApiProfileStatus(user.status),
+      })),
+      filters: {
+        ...data.filters,
+        status: data.filters.status ? toApiProfileStatus(data.filters.status) : null,
+      },
+    });
   } catch (error) {
     return apiError("USERS_FETCH_FAILED", "Failed to load users.", {
       status: 500,
