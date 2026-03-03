@@ -259,6 +259,7 @@ export function UserAuditTableClient() {
         <div className="flex items-center gap-3">
           <Link
             href="/users"
+            prefetch={false}
             className="rounded-md border border-white/15 bg-white/5 px-3 py-1.5 text-sm text-slate-200 hover:bg-white/10"
           >
             Back to Users
