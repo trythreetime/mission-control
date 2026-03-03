@@ -6,10 +6,10 @@ import { useEffect, useState } from "react";
 
 import { UserRoleEditor } from "@/components/user-role-editor";
 import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { ApiResponse } from "@/lib/api-response";
 import { cn } from "@/lib/utils";
@@ -69,6 +69,7 @@ const STATUS_OPTIONS: UserStatusFilter[] = ["active", "disabled"];
 const PAGE_SIZE_OPTIONS = [20, 50, 100] as const;
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 20;
+const ALL_FILTERS_VALUE = "__all";
 
 function parsePage(value: string | null): number {
   const parsed = Number(value);
@@ -315,10 +316,12 @@ export function UsersTableClient({ currentUserId }: Props) {
       <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
         <CardTitle>Users</CardTitle>
         <div className="flex flex-wrap items-center gap-3">
-          <Link href="/users/audit" prefetch={false} className={buttonVariants({ variant: "default", size: "sm" })}>
-            View Audit Log
-          </Link>
-          <span className="text-sm text-slate-300">
+          <Button asChild size="sm">
+            <Link href="/users/audit" prefetch={false}>
+              View Audit Log
+            </Link>
+          </Button>
+          <span className="text-sm text-muted-foreground">
             Total: {pagination.total}
             {loading ? " · Loading..." : ""}
           </span>
@@ -327,11 +330,18 @@ export function UsersTableClient({ currentUserId }: Props) {
 
       <CardContent className="space-y-4">
         {statusHint ? (
-          <p className={cn("text-xs", statusHint.tone === "error" ? "text-rose-300" : "text-cyan-200")}>{statusHint.message}</p>
+          <p
+            className={cn(
+              "text-xs",
+              statusHint.tone === "error" ? "text-destructive" : "text-emerald-600 dark:text-emerald-400",
+            )}
+          >
+            {statusHint.message}
+          </p>
         ) : null}
 
         <form
-          className="grid gap-3 rounded-xl border border-white/10 bg-black/20 p-4 md:grid-cols-5"
+          className="grid gap-3 rounded-xl border bg-muted/30 p-4 md:grid-cols-5"
           onSubmit={(event) => {
             event.preventDefault();
             replaceQuery({
@@ -343,7 +353,7 @@ export function UsersTableClient({ currentUserId }: Props) {
             });
           }}
         >
-          <label className="space-y-2 text-xs font-semibold uppercase tracking-wide text-slate-400 md:col-span-2">
+          <label className="space-y-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground md:col-span-2">
             <span>Search Email</span>
             <Input
               type="text"
@@ -354,45 +364,58 @@ export function UsersTableClient({ currentUserId }: Props) {
             />
           </label>
 
-          <label className="space-y-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+          <label className="space-y-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             <span>Role</span>
             <Select
-              name="role"
-              value={formState.role}
-              onChange={(event) => setFormState((current) => ({ ...current, role: event.target.value }))}
+              value={formState.role || ALL_FILTERS_VALUE}
+              onValueChange={(value) =>
+                setFormState((current) => ({ ...current, role: value === ALL_FILTERS_VALUE ? "" : value }))
+              }
             >
-              <option value="">All roles</option>
-              <option value="viewer">viewer</option>
-              <option value="operator">operator</option>
-              <option value="admin">admin</option>
+              <SelectTrigger className="w-full" aria-label="Role">
+                <SelectValue placeholder="All roles" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL_FILTERS_VALUE}>All roles</SelectItem>
+                <SelectItem value="viewer">viewer</SelectItem>
+                <SelectItem value="operator">operator</SelectItem>
+                <SelectItem value="admin">admin</SelectItem>
+              </SelectContent>
             </Select>
           </label>
 
-          <label className="space-y-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+          <label className="space-y-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             <span>Status</span>
             <Select
-              name="status"
-              value={formState.status}
-              onChange={(event) => setFormState((current) => ({ ...current, status: event.target.value }))}
+              value={formState.status || ALL_FILTERS_VALUE}
+              onValueChange={(value) =>
+                setFormState((current) => ({ ...current, status: value === ALL_FILTERS_VALUE ? "" : value }))
+              }
             >
-              <option value="">All statuses</option>
-              <option value="active">active</option>
-              <option value="disabled">disabled</option>
+              <SelectTrigger className="w-full" aria-label="Status">
+                <SelectValue placeholder="All statuses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL_FILTERS_VALUE}>All statuses</SelectItem>
+                <SelectItem value="active">active</SelectItem>
+                <SelectItem value="disabled">disabled</SelectItem>
+              </SelectContent>
             </Select>
           </label>
 
-          <label className="space-y-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+          <label className="space-y-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             <span>Page Size</span>
-            <Select
-              name="pageSize"
-              value={formState.pageSize}
-              onChange={(event) => setFormState((current) => ({ ...current, pageSize: event.target.value }))}
-            >
+            <Select value={formState.pageSize} onValueChange={(value) => setFormState((current) => ({ ...current, pageSize: value }))}>
+              <SelectTrigger className="w-full" aria-label="Page Size">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
               {PAGE_SIZE_OPTIONS.map((size) => (
-                <option key={size} value={size}>
+                <SelectItem key={size} value={String(size)}>
                   {size}
-                </option>
+                </SelectItem>
               ))}
+              </SelectContent>
             </Select>
           </label>
 
@@ -438,7 +461,7 @@ export function UsersTableClient({ currentUserId }: Props) {
               <TableRow>
                 <TableCell
                   colSpan={6}
-                  className={cn("py-6 text-center", tableMessage.tone === "error" ? "text-rose-300" : "text-slate-400")}
+                  className={cn("py-6 text-center", tableMessage.tone === "error" ? "text-destructive" : "text-muted-foreground")}
                 >
                   {tableMessage.text}
                 </TableCell>
@@ -452,13 +475,13 @@ export function UsersTableClient({ currentUserId }: Props) {
 
                   return (
                     <TableRow key={user.userId}>
-                      <TableCell className="py-3 text-center font-medium text-slate-100">{user.email}</TableCell>
-                      <TableCell className="py-3 text-center font-mono text-xs text-slate-300">{user.userId}</TableCell>
+                      <TableCell className="py-3 text-center font-medium">{user.email}</TableCell>
+                      <TableCell className="py-3 text-center font-mono text-xs text-muted-foreground">{user.userId}</TableCell>
                       <TableCell className="py-3 text-center">
                         <Badge variant="secondary">{user.role}</Badge>
                       </TableCell>
                       <TableCell className="py-3 text-center">
-                        <Badge variant={user.status === "active" ? "success" : "destructive"}>{user.status}</Badge>
+                        <Badge variant={user.status === "active" ? "default" : "destructive"}>{user.status}</Badge>
                       </TableCell>
                       <TableCell className="py-3 text-center">{formatDateTime(user.lastLoginAt)}</TableCell>
                       <TableCell className="py-3 text-center">
@@ -485,7 +508,7 @@ export function UsersTableClient({ currentUserId }: Props) {
                           <Button
                             size="sm"
                             variant={
-                              isCurrentAccount ? "outline" : user.status === "active" ? "destructive" : "success"
+                              isCurrentAccount ? "outline" : user.status === "active" ? "destructive" : "default"
                             }
                             className="min-w-[96px]"
                             onClick={() => {
@@ -512,7 +535,7 @@ export function UsersTableClient({ currentUserId }: Props) {
       </CardContent>
 
       <CardFooter className="px-5 pb-5 pt-0">
-        <div className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-slate-300">
+        <div className="flex w-full items-center justify-between rounded-xl border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
           <p>
             Showing {rangeStart}-{rangeEnd} of {pagination.total}
           </p>

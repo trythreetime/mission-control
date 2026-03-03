@@ -5,10 +5,10 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { ApiResponse } from "@/lib/api-response";
 import { cn } from "@/lib/utils";
@@ -64,6 +64,7 @@ const ACTION_OPTIONS: UserAuditAction[] = ["role_changed", "status_changed"];
 const PAGE_SIZE_OPTIONS = [20, 50, 100] as const;
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 20;
+const ALL_ACTIONS_VALUE = "__all";
 
 function parsePage(value: string | null): number {
   const parsed = Number(value);
@@ -273,10 +274,12 @@ export function UserAuditTableClient() {
       <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
         <CardTitle>User Audit Log</CardTitle>
         <div className="flex flex-wrap items-center gap-3">
-          <Link href="/users" prefetch={false} className={buttonVariants({ variant: "secondary", size: "sm" })}>
-            Back to Users
-          </Link>
-          <span className="text-sm text-slate-300">
+          <Button asChild size="sm" variant="secondary">
+            <Link href="/users" prefetch={false}>
+              Back to Users
+            </Link>
+          </Button>
+          <span className="text-sm text-muted-foreground">
             Total: {pagination.total}
             {loading ? " · Loading..." : ""}
           </span>
@@ -285,7 +288,7 @@ export function UserAuditTableClient() {
 
       <CardContent className="space-y-4">
         <form
-          className="grid gap-3 rounded-xl border border-white/10 bg-black/20 p-4 md:grid-cols-5"
+          className="grid gap-3 rounded-xl border bg-muted/30 p-4 md:grid-cols-5"
           onSubmit={(event) => {
             event.preventDefault();
             replaceQuery({
@@ -297,7 +300,7 @@ export function UserAuditTableClient() {
             });
           }}
         >
-          <label className="space-y-2 text-xs font-semibold uppercase tracking-wide text-slate-400 md:col-span-2">
+          <label className="space-y-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground md:col-span-2">
             <span>Target Email</span>
             <Input
               type="text"
@@ -308,7 +311,7 @@ export function UserAuditTableClient() {
             />
           </label>
 
-          <label className="space-y-2 text-xs font-semibold uppercase tracking-wide text-slate-400 md:col-span-2">
+          <label className="space-y-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground md:col-span-2">
             <span>Actor Email</span>
             <Input
               type="text"
@@ -319,31 +322,38 @@ export function UserAuditTableClient() {
             />
           </label>
 
-          <label className="space-y-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+          <label className="space-y-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             <span>Action</span>
             <Select
-              name="action"
-              value={formState.action}
-              onChange={(event) => setFormState((current) => ({ ...current, action: event.target.value }))}
+              value={formState.action || ALL_ACTIONS_VALUE}
+              onValueChange={(value) =>
+                setFormState((current) => ({ ...current, action: value === ALL_ACTIONS_VALUE ? "" : value }))
+              }
             >
-              <option value="">All actions</option>
-              <option value="role_changed">role_changed</option>
-              <option value="status_changed">status_changed</option>
+              <SelectTrigger className="w-full" aria-label="Action">
+                <SelectValue placeholder="All actions" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL_ACTIONS_VALUE}>All actions</SelectItem>
+                <SelectItem value="role_changed">role_changed</SelectItem>
+                <SelectItem value="status_changed">status_changed</SelectItem>
+              </SelectContent>
             </Select>
           </label>
 
-          <label className="space-y-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+          <label className="space-y-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             <span>Page Size</span>
-            <Select
-              name="pageSize"
-              value={formState.pageSize}
-              onChange={(event) => setFormState((current) => ({ ...current, pageSize: event.target.value }))}
-            >
+            <Select value={formState.pageSize} onValueChange={(value) => setFormState((current) => ({ ...current, pageSize: value }))}>
+              <SelectTrigger className="w-full" aria-label="Page Size">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
               {PAGE_SIZE_OPTIONS.map((size) => (
-                <option key={size} value={size}>
+                <SelectItem key={size} value={String(size)}>
                   {size}
-                </option>
+                </SelectItem>
               ))}
+              </SelectContent>
             </Select>
           </label>
 
@@ -389,7 +399,7 @@ export function UserAuditTableClient() {
               <TableRow>
                 <TableCell
                   colSpan={6}
-                  className={cn("py-6 text-center", tableMessage.tone === "error" ? "text-rose-300" : "text-slate-400")}
+                  className={cn("py-6 text-center", tableMessage.tone === "error" ? "text-destructive" : "text-muted-foreground")}
                 >
                   {tableMessage.text}
                 </TableCell>
@@ -404,12 +414,12 @@ export function UserAuditTableClient() {
                       <Badge variant={log.action === "status_changed" ? "secondary" : "default"}>{formatAction(log.action)}</Badge>
                     </TableCell>
                     <TableCell className="py-3 text-center">
-                      <div className="font-medium text-slate-100">{log.targetEmail}</div>
-                      <div className="font-mono text-xs text-slate-300">{log.targetUserId}</div>
+                      <div className="font-medium">{log.targetEmail}</div>
+                      <div className="font-mono text-xs text-muted-foreground">{log.targetUserId}</div>
                     </TableCell>
                     <TableCell className="py-3 text-center">
-                      <div className="font-medium text-slate-100">{log.actorEmail}</div>
-                      <div className="font-mono text-xs text-slate-300">{log.actorUserId}</div>
+                      <div className="font-medium">{log.actorEmail}</div>
+                      <div className="font-mono text-xs text-muted-foreground">{log.actorUserId}</div>
                     </TableCell>
                     <TableCell className="py-3 text-center">{formatBeforeValue(log)}</TableCell>
                     <TableCell className="py-3 text-center">{formatAfterValue(log)}</TableCell>
@@ -421,7 +431,7 @@ export function UserAuditTableClient() {
       </CardContent>
 
       <CardFooter className="px-5 pb-5 pt-0">
-        <div className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-slate-300">
+        <div className="flex w-full items-center justify-between rounded-xl border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
           <p>
             Showing {rangeStart}-{rangeEnd} of {pagination.total}
           </p>
