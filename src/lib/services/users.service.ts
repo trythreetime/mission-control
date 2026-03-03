@@ -1,7 +1,6 @@
 import "server-only";
 
-import type { Prisma } from "@prisma/client";
-import { ProfileStatus, UserRole } from "@prisma/client";
+import type { Prisma, ProfileStatus, UserRole } from "@prisma/client";
 
 import { db } from "@/lib/db";
 
@@ -83,23 +82,21 @@ export async function listUsers(filters: UserListFilters): Promise<UsersListResu
 
   const skip = (filters.page - 1) * filters.pageSize;
 
-  const [total, profiles] = await db.$transaction([
-    db.profile.count({ where }),
-    db.profile.findMany({
-      where,
-      orderBy: [{ createdAt: "desc" }, { email: "asc" }],
-      skip,
-      take: filters.pageSize,
-      select: {
-        userId: true,
-        email: true,
-        role: true,
-        status: true,
-        lastLoginAt: true,
-        createdAt: true,
-      },
-    }),
-  ]);
+  const total = await db.profile.count({ where });
+  const profiles = await db.profile.findMany({
+    where,
+    orderBy: [{ createdAt: "desc" }, { email: "asc" }],
+    skip,
+    take: filters.pageSize,
+    select: {
+      userId: true,
+      email: true,
+      role: true,
+      status: true,
+      lastLoginAt: true,
+      createdAt: true,
+    },
+  });
 
   return {
     users: profiles.map((profile) => toUserListItem(profile)),

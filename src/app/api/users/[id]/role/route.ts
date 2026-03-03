@@ -1,12 +1,14 @@
-import { UserRole } from "@prisma/client";
+import type { UserRole } from "@prisma/client";
 import { z } from "zod";
 
 import { apiError, apiSuccess } from "@/lib/api-response";
 import { requireApiRole } from "@/lib/auth/guards";
 import { updateUserRole, UserNotFoundError } from "@/lib/services/users.service";
 
+const USER_ROLES = ["viewer", "operator", "admin"] as const;
+
 const bodySchema = z.object({
-  role: z.nativeEnum(UserRole),
+  role: z.enum(USER_ROLES),
 });
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
@@ -38,7 +40,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   }
 
   try {
-    const user = await updateUserRole(targetUserId, parsed.data.role, {
+    const user = await updateUserRole(targetUserId, parsed.data.role as UserRole, {
       userId: session.userId,
       email: session.email,
     });
