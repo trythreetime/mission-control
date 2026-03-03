@@ -1,8 +1,7 @@
 "use client";
 
 import type { UserRole } from "@prisma/client";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import type { ApiResponse } from "@/lib/api-response";
 import { UserRoleEditor } from "@/components/user-role-editor";
@@ -146,19 +145,32 @@ function formatDateTime(value: string | null): string {
 }
 
 export function UsersTableClient() {
-  const pathname = usePathname();
-  const rawSearchParams = useSearchParams();
-  const router = useRouter();
+  const [currentQuery, setCurrentQuery] = useState<UsersQueryState>(() => {
+    if (typeof window === "undefined") {
+      return {
+        query: "",
+        role: null,
+        status: null,
+        page: DEFAULT_PAGE,
+        pageSize: DEFAULT_PAGE_SIZE,
+      };
+    }
 
-  const currentQuery = useMemo(
-    () => parseUsersQuery(new URLSearchParams(rawSearchParams.toString())),
-    [rawSearchParams],
-  );
-
+    return parseUsersQuery(new URLSearchParams(window.location.search));
+  });
   const [formState, setFormState] = useState<FilterFormState>(() => toFormState(currentQuery));
   const [data, setData] = useState<UsersApiData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const onPopState = () => {
+      setCurrentQuery(parseUsersQuery(new URLSearchParams(window.location.search)));
+    };
+
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
 
   useEffect(() => {
     setFormState(toFormState(currentQuery));
@@ -220,7 +232,9 @@ export function UsersTableClient() {
 
   const replaceQuery = (next: UsersQueryState) => {
     const nextQueryString = toQueryString(next);
-    router.replace(nextQueryString.length > 0 ? `${pathname}?${nextQueryString}` : pathname, { scroll: false });
+    const nextUrl = nextQueryString.length > 0 ? `${window.location.pathname}?${nextQueryString}` : window.location.pathname;
+    window.history.replaceState(null, "", nextUrl);
+    setCurrentQuery(next);
   };
 
   return (
@@ -313,7 +327,14 @@ export function UsersTableClient() {
                 status: "",
                 pageSize: String(DEFAULT_PAGE_SIZE),
               });
-              router.replace(pathname, { scroll: false });
+              window.history.replaceState(null, "", window.location.pathname);
+              setCurrentQuery({
+                query: "",
+                role: null,
+                status: null,
+                page: DEFAULT_PAGE,
+                pageSize: DEFAULT_PAGE_SIZE,
+              });
             }}
             className="rounded-md border border-white/15 bg-white/5 px-3 py-1.5 text-sm text-slate-200 hover:bg-white/10"
           >
@@ -367,21 +388,21 @@ export function UsersTableClient() {
 
             {!error
               ? users.map((user) => (
-                  <tr key={user.userId} className="border-t border-white/10 align-top">
+                  <tr key={user.userId} className="border-t border-white/10 align-middle">
                     <td className="py-3 text-center font-medium text-slate-100">{user.email}</td>
-                    <td className="text-center font-mono text-xs text-slate-300">{user.userId}</td>
-                    <td className="text-center">
+                    <td className="py-3 text-center font-mono text-xs text-slate-300">{user.userId}</td>
+                    <td className="py-3 text-center">
                       <span className="inline-block rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-xs">
                         {user.role}
                       </span>
                     </td>
-                    <td className="text-center">
+                    <td className="py-3 text-center">
                       <span className="inline-block rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-xs">
                         {user.status}
                       </span>
                     </td>
-                    <td className="text-center">{formatDateTime(user.lastLoginAt)}</td>
-                    <td className="text-center">
+                    <td className="py-3 text-center">{formatDateTime(user.lastLoginAt)}</td>
+                    <td className="py-3 text-center">
                       <UserRoleEditor
                         userId={user.userId}
                         email={user.email}
