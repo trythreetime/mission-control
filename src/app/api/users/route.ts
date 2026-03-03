@@ -1,26 +1,17 @@
-import type { ProfileStatus, UserRole } from "@prisma/client";
+import type { UserRole } from "@prisma/client";
 import { z } from "zod";
 
 import { apiError, apiSuccess } from "@/lib/api-response";
 import { requireApiRole } from "@/lib/auth/guards";
 import { listUsers } from "@/lib/services/users.service";
+import { API_PROFILE_STATUSES, toApiProfileStatus, toDbProfileStatus } from "@/lib/users-status";
 
 const USER_ROLES = ["viewer", "operator", "admin"] as const;
-const PROFILE_STATUSES = ["active", "disabled"] as const;
-type ApiProfileStatus = (typeof PROFILE_STATUSES)[number];
-
-function toDbProfileStatus(status: ApiProfileStatus): ProfileStatus {
-  return status === "disabled" ? "inactive" : "active";
-}
-
-function toApiProfileStatus(status: ProfileStatus): ApiProfileStatus {
-  return status === "inactive" ? "disabled" : "active";
-}
 
 const querySchema = z.object({
   query: z.string().trim().optional(),
   role: z.enum(USER_ROLES).optional(),
-  status: z.enum(PROFILE_STATUSES).optional(),
+  status: z.enum(API_PROFILE_STATUSES).optional(),
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(20),
 });

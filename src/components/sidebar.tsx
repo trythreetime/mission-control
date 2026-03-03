@@ -27,7 +27,8 @@ export function Sidebar({ role }: Props) {
       </div>
       <nav className="space-y-1.5">
         {navItems.map((item) => {
-          const active = pathname === item.href;
+          const active =
+            item.href === "/" ? pathname === "/" : pathname === item.href || pathname.startsWith(`${item.href}/`);
           return (
             <Link
               key={item.href}

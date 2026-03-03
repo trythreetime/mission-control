@@ -160,8 +160,10 @@ model UserAuditLog {
   actorUserId   String
   actorEmail    String
   action        String
-  roleBefore    UserRole
-  roleAfter     UserRole
+  roleBefore    UserRole?
+  roleAfter     UserRole?
+  statusBefore  ProfileStatus?
+  statusAfter   ProfileStatus?
   createdAt     DateTime @default(now())
 
   targetProfile Profile @relation(fields: [targetUserId], references: [userId], onDelete: Cascade)

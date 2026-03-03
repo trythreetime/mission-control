@@ -1,15 +1,12 @@
-import type { UserRole } from "@prisma/client";
 import { z } from "zod";
 
 import { apiError, apiSuccess } from "@/lib/api-response";
 import { requireApiRole } from "@/lib/auth/guards";
-import { updateUserRole, UserNotFoundError } from "@/lib/services/users.service";
-import { toApiProfileStatus } from "@/lib/users-status";
-
-const USER_ROLES = ["viewer", "operator", "admin"] as const;
+import { updateUserStatus, UserNotFoundError } from "@/lib/services/users.service";
+import { API_PROFILE_STATUSES, toApiProfileStatus, toDbProfileStatus } from "@/lib/users-status";
 
 const bodySchema = z.object({
-  role: z.enum(USER_ROLES),
+  status: z.enum(API_PROFILE_STATUSES),
 });
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
@@ -34,14 +31,20 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
 
   const parsed = bodySchema.safeParse(body);
   if (!parsed.success) {
-    return apiError("INVALID_ROLE_PAYLOAD", "Invalid role payload.", {
+    return apiError("INVALID_STATUS_PAYLOAD", "Invalid status payload.", {
       status: 400,
       details: parsed.error.flatten(),
     });
   }
 
+  if (session.userId === targetUserId && parsed.data.status === "disabled") {
+    return apiError("CANNOT_DISABLE_SELF", "You cannot disable your currently logged-in account.", {
+      status: 400,
+    });
+  }
+
   try {
-    const user = await updateUserRole(targetUserId, parsed.data.role as UserRole, {
+    const user = await updateUserStatus(targetUserId, toDbProfileStatus(parsed.data.status), {
       userId: session.userId,
       email: session.email,
     });
@@ -57,7 +60,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       return apiError("USER_NOT_FOUND", "User not found.", { status: 404 });
     }
 
-    return apiError("USER_ROLE_UPDATE_FAILED", "Failed to update user role.", {
+    return apiError("USER_STATUS_UPDATE_FAILED", "Failed to update user status.", {
       status: 500,
       details: error instanceof Error ? error.message : "Unknown error",
     });
