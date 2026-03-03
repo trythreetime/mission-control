@@ -3,7 +3,7 @@ import { z } from "zod";
 import { apiError, apiSuccess } from "@/lib/api-response";
 import { setAuthCookies } from "@/lib/auth/cookies";
 import { SupabaseAuthError, verifyEmailOtp } from "@/lib/auth/supabase";
-import { ensureProfileForUser } from "@/lib/services/profiles.service";
+import { ensureProfileForUser, markProfileLogin } from "@/lib/services/profiles.service";
 
 const schema = z.object({
   email: z.string().trim().email(),
@@ -30,6 +30,7 @@ export async function POST(request: Request) {
   try {
     const session = await verifyEmailOtp(parsed.data.email, parsed.data.token);
     const profile = await ensureProfileForUser(session.user.id, session.user.email ?? parsed.data.email);
+    await markProfileLogin(profile.userId);
 
     const response = apiSuccess({
       user: {

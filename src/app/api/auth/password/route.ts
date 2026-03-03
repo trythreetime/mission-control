@@ -3,7 +3,7 @@ import { z } from "zod";
 import { apiError, apiSuccess } from "@/lib/api-response";
 import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE, setAuthCookies } from "@/lib/auth/cookies";
 import { SupabaseAuthError, signInWithPassword } from "@/lib/auth/supabase";
-import { ensureProfileForUser } from "@/lib/services/profiles.service";
+import { ensureProfileForUser, markProfileLogin } from "@/lib/services/profiles.service";
 
 const LOCAL_ADMIN_USERNAME = process.env.LOCAL_ADMIN_USERNAME;
 const LOCAL_ADMIN_PASSWORD = process.env.LOCAL_ADMIN_PASSWORD;
@@ -72,6 +72,7 @@ export async function POST(request: Request) {
 
     const session = await signInWithPassword(parsed.data.email, parsed.data.password);
     const profile = await ensureProfileForUser(session.user.id, session.user.email ?? parsed.data.email);
+    await markProfileLogin(profile.userId);
 
     const response = apiSuccess({
       user: {

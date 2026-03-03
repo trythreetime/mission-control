@@ -1,9 +1,10 @@
 "use client";
 
+import type { UserRole } from "@prisma/client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const navItems = [
+const baseNavItems = [
   { href: "/", label: "Overview" },
   { href: "/jobs", label: "Jobs" },
   { href: "/nodes", label: "Nodes" },
@@ -11,8 +12,13 @@ const navItems = [
   { href: "/alerts", label: "Alerts" },
 ];
 
-export function Sidebar() {
+type Props = {
+  role: UserRole;
+};
+
+export function Sidebar({ role }: Props) {
   const pathname = usePathname();
+  const navItems = role === "admin" ? [...baseNavItems, { href: "/users", label: "Users" }] : baseNavItems;
 
   return (
     <aside className="w-64 border-r border-white/10 bg-black/40 p-5 backdrop-blur-xl">

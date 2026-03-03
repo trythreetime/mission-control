@@ -91,3 +91,13 @@ export async function getProfileByUserId(userId: string): Promise<UserProfile | 
     },
   });
 }
+
+export async function markProfileLogin(userId: string): Promise<void> {
+  await db.profile.update({
+    where: { userId },
+    data: {
+      status: "active",
+      lastLoginAt: new Date(),
+    },
+  });
+}

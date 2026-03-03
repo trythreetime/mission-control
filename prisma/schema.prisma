@@ -53,6 +53,11 @@ enum UserRole {
   admin
 }
 
+enum ProfileStatus {
+  active
+  inactive
+}
+
 model Node {
   id              String     @id @default(uuid())
   nodeKey         String     @unique
@@ -132,13 +137,37 @@ model Alert {
 }
 
 model Profile {
-  id        String   @id @default(uuid())
-  userId    String   @unique
-  email     String
-  role      UserRole @default(viewer)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String        @id @default(uuid())
+  userId      String        @unique
+  email       String
+  role        UserRole      @default(viewer)
+  status      ProfileStatus @default(active)
+  lastLoginAt DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  roleAuditLogs UserAuditLog[]
 
   @@index([role, createdAt(sort: Asc)])
+  @@index([status, createdAt(sort: Desc)])
   @@map("profiles")
+}
+
+model UserAuditLog {
+  id            String   @id @default(uuid())
+  targetUserId  String
+  targetEmail   String
+  actorUserId   String
+  actorEmail    String
+  action        String
+  roleBefore    UserRole
+  roleAfter     UserRole
+  createdAt     DateTime @default(now())
+
+  targetProfile Profile @relation(fields: [targetUserId], references: [userId], onDelete: Cascade)
+
+  @@index([targetUserId, createdAt(sort: Desc)])
+  @@index([actorUserId, createdAt(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
+  @@map("user_audit_logs")
 }
