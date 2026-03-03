@@ -4,7 +4,14 @@ import type { UserRole } from "@prisma/client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import { Badge } from "@/components/ui/badge";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { ApiResponse } from "@/lib/api-response";
+import { cn } from "@/lib/utils";
 
 type UserStatusFilter = "active" | "disabled";
 type UserAuditAction = "role_changed" | "status_changed";
@@ -245,6 +252,15 @@ export function UserAuditTableClient() {
   const rangeStart = pagination.total === 0 ? 0 : (currentPage - 1) * pagination.pageSize + 1;
   const rangeEnd = Math.min(pagination.total, currentPage * pagination.pageSize);
 
+  const tableMessage =
+    loading && data === null
+      ? { tone: "muted", text: "Loading audit logs..." }
+      : !loading && error
+        ? { tone: "error", text: error }
+        : !loading && !error && logs.length === 0
+          ? { tone: "muted", text: "No audit logs found." }
+          : null;
+
   const replaceQuery = (next: AuditQueryState) => {
     const nextQueryString = toQueryString(next);
     const nextUrl = nextQueryString.length > 0 ? `${window.location.pathname}?${nextQueryString}` : window.location.pathname;
@@ -253,15 +269,11 @@ export function UserAuditTableClient() {
   };
 
   return (
-    <section className="space-y-5 rounded-2xl border border-white/10 bg-white/5 p-5 shadow-[0_10px_35px_rgba(0,0,0,0.35)]">
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold text-white">User Audit Log</h2>
-        <div className="flex items-center gap-3">
-          <Link
-            href="/users"
-            prefetch={false}
-            className="rounded-md border border-white/15 bg-white/5 px-3 py-1.5 text-sm text-slate-200 hover:bg-white/10"
-          >
+    <Card>
+      <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
+        <CardTitle>User Audit Log</CardTitle>
+        <div className="flex flex-wrap items-center gap-3">
+          <Link href="/users" prefetch={false} className={buttonVariants({ variant: "secondary", size: "sm" })}>
             Back to Users
           </Link>
           <span className="text-sm text-slate-300">
@@ -269,219 +281,186 @@ export function UserAuditTableClient() {
             {loading ? " · Loading..." : ""}
           </span>
         </div>
-      </div>
+      </CardHeader>
 
-      <form
-        className="grid gap-3 rounded-xl border border-white/10 bg-black/20 p-4 md:grid-cols-5"
-        onSubmit={(event) => {
-          event.preventDefault();
-          replaceQuery({
-            targetEmail: formState.targetEmail.trim(),
-            actorEmail: formState.actorEmail.trim(),
-            action: parseAction(formState.action),
-            page: DEFAULT_PAGE,
-            pageSize: parsePageSize(formState.pageSize),
-          });
-        }}
-      >
-        <label className="text-xs font-semibold uppercase tracking-wide text-slate-400 md:col-span-2">
-          Target Email
-          <input
-            type="text"
-            name="targetEmail"
-            value={formState.targetEmail}
-            onChange={(event) => setFormState((current) => ({ ...current, targetEmail: event.target.value }))}
-            placeholder="target@example.com"
-            className="mt-2 w-full rounded-md border border-white/10 bg-black/40 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500"
-          />
-        </label>
+      <CardContent className="space-y-4">
+        <form
+          className="grid gap-3 rounded-xl border border-white/10 bg-black/20 p-4 md:grid-cols-5"
+          onSubmit={(event) => {
+            event.preventDefault();
+            replaceQuery({
+              targetEmail: formState.targetEmail.trim(),
+              actorEmail: formState.actorEmail.trim(),
+              action: parseAction(formState.action),
+              page: DEFAULT_PAGE,
+              pageSize: parsePageSize(formState.pageSize),
+            });
+          }}
+        >
+          <label className="space-y-2 text-xs font-semibold uppercase tracking-wide text-slate-400 md:col-span-2">
+            <span>Target Email</span>
+            <Input
+              type="text"
+              name="targetEmail"
+              value={formState.targetEmail}
+              onChange={(event) => setFormState((current) => ({ ...current, targetEmail: event.target.value }))}
+              placeholder="target@example.com"
+            />
+          </label>
 
-        <label className="text-xs font-semibold uppercase tracking-wide text-slate-400 md:col-span-2">
-          Actor Email
-          <input
-            type="text"
-            name="actorEmail"
-            value={formState.actorEmail}
-            onChange={(event) => setFormState((current) => ({ ...current, actorEmail: event.target.value }))}
-            placeholder="actor@example.com"
-            className="mt-2 w-full rounded-md border border-white/10 bg-black/40 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500"
-          />
-        </label>
+          <label className="space-y-2 text-xs font-semibold uppercase tracking-wide text-slate-400 md:col-span-2">
+            <span>Actor Email</span>
+            <Input
+              type="text"
+              name="actorEmail"
+              value={formState.actorEmail}
+              onChange={(event) => setFormState((current) => ({ ...current, actorEmail: event.target.value }))}
+              placeholder="actor@example.com"
+            />
+          </label>
 
-        <label className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-          Action
-          <select
-            name="action"
-            value={formState.action}
-            onChange={(event) => setFormState((current) => ({ ...current, action: event.target.value }))}
-            className="mt-2 w-full rounded-md border border-white/10 bg-black/40 px-3 py-2 text-sm text-slate-100"
-          >
-            <option value="">All actions</option>
-            <option value="role_changed">role_changed</option>
-            <option value="status_changed">status_changed</option>
-          </select>
-        </label>
+          <label className="space-y-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+            <span>Action</span>
+            <Select
+              name="action"
+              value={formState.action}
+              onChange={(event) => setFormState((current) => ({ ...current, action: event.target.value }))}
+            >
+              <option value="">All actions</option>
+              <option value="role_changed">role_changed</option>
+              <option value="status_changed">status_changed</option>
+            </Select>
+          </label>
 
-        <label className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-          Page Size
-          <select
-            name="pageSize"
-            value={formState.pageSize}
-            onChange={(event) => setFormState((current) => ({ ...current, pageSize: event.target.value }))}
-            className="mt-2 w-full rounded-md border border-white/10 bg-black/40 px-3 py-2 text-sm text-slate-100"
-          >
-            {PAGE_SIZE_OPTIONS.map((size) => (
-              <option key={size} value={size}>
-                {size}
-              </option>
-            ))}
-          </select>
-        </label>
+          <label className="space-y-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+            <span>Page Size</span>
+            <Select
+              name="pageSize"
+              value={formState.pageSize}
+              onChange={(event) => setFormState((current) => ({ ...current, pageSize: event.target.value }))}
+            >
+              {PAGE_SIZE_OPTIONS.map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </Select>
+          </label>
 
-        <div className="flex items-center justify-end gap-2 md:col-span-5">
-          <button
-            type="button"
-            onClick={() => {
-              setFormState({
-                targetEmail: "",
-                actorEmail: "",
-                action: "",
-                pageSize: String(DEFAULT_PAGE_SIZE),
-              });
-              window.history.replaceState(null, "", window.location.pathname);
-              setCurrentQuery({
-                targetEmail: "",
-                actorEmail: "",
-                action: null,
-                page: DEFAULT_PAGE,
-                pageSize: DEFAULT_PAGE_SIZE,
-              });
-            }}
-            className="rounded-md border border-white/15 bg-white/5 px-3 py-1.5 text-sm text-slate-200 hover:bg-white/10"
-          >
-            Reset
-          </button>
-          <button
-            type="submit"
-            className="rounded-md border border-cyan-300/30 bg-cyan-400/15 px-3 py-1.5 text-sm text-cyan-100 hover:bg-cyan-400/25"
-          >
-            Apply
-          </button>
-        </div>
-      </form>
+          <div className="flex items-center justify-end gap-2 md:col-span-5">
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setFormState({
+                  targetEmail: "",
+                  actorEmail: "",
+                  action: "",
+                  pageSize: String(DEFAULT_PAGE_SIZE),
+                });
+                window.history.replaceState(null, "", window.location.pathname);
+                setCurrentQuery({
+                  targetEmail: "",
+                  actorEmail: "",
+                  action: null,
+                  page: DEFAULT_PAGE,
+                  pageSize: DEFAULT_PAGE_SIZE,
+                });
+              }}
+            >
+              Reset
+            </Button>
+            <Button type="submit">Apply</Button>
+          </div>
+        </form>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm text-slate-200">
-          <thead className="text-xs uppercase tracking-wider text-slate-400">
-            <tr>
-              <th className="py-2 text-center">Time</th>
-              <th className="text-center">Action</th>
-              <th className="text-center">Target User</th>
-              <th className="text-center">Actor User</th>
-              <th className="text-center">Before</th>
-              <th className="text-center">After</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading && data === null ? (
-              <tr className="border-t border-white/10">
-                <td colSpan={6} className="py-4 text-center text-slate-400">
-                  Loading audit logs...
-                </td>
-              </tr>
-            ) : null}
-
-            {!loading && error ? (
-              <tr className="border-t border-white/10">
-                <td colSpan={6} className="py-4 text-center text-rose-300">
-                  {error}
-                </td>
-              </tr>
-            ) : null}
-
-            {!loading && !error && logs.length === 0 ? (
-              <tr className="border-t border-white/10">
-                <td colSpan={6} className="py-4 text-center text-slate-400">
-                  No audit logs found.
-                </td>
-              </tr>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="py-2 text-center">Time</TableHead>
+              <TableHead className="text-center">Action</TableHead>
+              <TableHead className="text-center">Target User</TableHead>
+              <TableHead className="text-center">Actor User</TableHead>
+              <TableHead className="text-center">Before</TableHead>
+              <TableHead className="text-center">After</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {tableMessage ? (
+              <TableRow>
+                <TableCell
+                  colSpan={6}
+                  className={cn("py-6 text-center", tableMessage.tone === "error" ? "text-rose-300" : "text-slate-400")}
+                >
+                  {tableMessage.text}
+                </TableCell>
+              </TableRow>
             ) : null}
 
             {!error
               ? logs.map((log) => (
-                  <tr key={log.id} className="border-t border-white/10 align-middle">
-                    <td className="py-3 text-center">{formatDateTime(log.createdAt)}</td>
-                    <td className="py-3 text-center">
-                      <span className="inline-block rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-xs">
-                        {formatAction(log.action)}
-                      </span>
-                    </td>
-                    <td className="py-3 text-center">
+                  <TableRow key={log.id}>
+                    <TableCell className="py-3 text-center">{formatDateTime(log.createdAt)}</TableCell>
+                    <TableCell className="py-3 text-center">
+                      <Badge variant={log.action === "status_changed" ? "secondary" : "default"}>{formatAction(log.action)}</Badge>
+                    </TableCell>
+                    <TableCell className="py-3 text-center">
                       <div className="font-medium text-slate-100">{log.targetEmail}</div>
                       <div className="font-mono text-xs text-slate-300">{log.targetUserId}</div>
-                    </td>
-                    <td className="py-3 text-center">
+                    </TableCell>
+                    <TableCell className="py-3 text-center">
                       <div className="font-medium text-slate-100">{log.actorEmail}</div>
                       <div className="font-mono text-xs text-slate-300">{log.actorUserId}</div>
-                    </td>
-                    <td className="py-3 text-center">{formatBeforeValue(log)}</td>
-                    <td className="py-3 text-center">{formatAfterValue(log)}</td>
-                  </tr>
+                    </TableCell>
+                    <TableCell className="py-3 text-center">{formatBeforeValue(log)}</TableCell>
+                    <TableCell className="py-3 text-center">{formatAfterValue(log)}</TableCell>
+                  </TableRow>
                 ))
               : null}
-          </tbody>
-        </table>
-      </div>
+          </TableBody>
+        </Table>
+      </CardContent>
 
-      <div className="flex items-center justify-between rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-slate-300">
-        <p>
-          Showing {rangeStart}-{rangeEnd} of {pagination.total}
-        </p>
+      <CardFooter className="px-5 pb-5 pt-0">
+        <div className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-slate-300">
+          <p>
+            Showing {rangeStart}-{rangeEnd} of {pagination.total}
+          </p>
 
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => {
-              if (!hasPrevious) {
-                return;
-              }
+          <div className="flex items-center gap-2">
+            <Button
+              variant="secondary"
+              onClick={() => {
+                if (!hasPrevious) {
+                  return;
+                }
 
-              replaceQuery({ ...currentQuery, page: currentPage - 1 });
-            }}
-            className={`rounded-md border border-white/15 px-3 py-1.5 ${
-              hasPrevious
-                ? "bg-white/5 text-slate-200 hover:bg-white/10"
-                : "pointer-events-none bg-white/5 text-slate-500 opacity-60"
-            }`}
-            disabled={!hasPrevious}
-          >
-            Previous
-          </button>
+                replaceQuery({ ...currentQuery, page: currentPage - 1 });
+              }}
+              disabled={!hasPrevious}
+            >
+              Previous
+            </Button>
 
-          <span>
-            Page {currentPage} / {totalPages}
-          </span>
+            <span>
+              Page {currentPage} / {totalPages}
+            </span>
 
-          <button
-            type="button"
-            onClick={() => {
-              if (!hasNext) {
-                return;
-              }
+            <Button
+              variant="secondary"
+              onClick={() => {
+                if (!hasNext) {
+                  return;
+                }
 
-              replaceQuery({ ...currentQuery, page: currentPage + 1 });
-            }}
-            className={`rounded-md border border-white/15 px-3 py-1.5 ${
-              hasNext
-                ? "bg-white/5 text-slate-200 hover:bg-white/10"
-                : "pointer-events-none bg-white/5 text-slate-500 opacity-60"
-            }`}
-            disabled={!hasNext}
-          >
-            Next
-          </button>
+                replaceQuery({ ...currentQuery, page: currentPage + 1 });
+              }}
+              disabled={!hasNext}
+            >
+              Next
+            </Button>
+          </div>
         </div>
-      </div>
-    </section>
+      </CardFooter>
+    </Card>
   );
 }

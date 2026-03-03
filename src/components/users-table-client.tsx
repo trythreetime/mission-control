@@ -4,8 +4,15 @@ import type { UserRole } from "@prisma/client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import type { ApiResponse } from "@/lib/api-response";
 import { UserRoleEditor } from "@/components/user-role-editor";
+import { Badge } from "@/components/ui/badge";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import type { ApiResponse } from "@/lib/api-response";
+import { cn } from "@/lib/utils";
 
 type UserStatusFilter = "active" | "disabled";
 
@@ -244,6 +251,15 @@ export function UsersTableClient({ currentUserId }: Props) {
   const rangeStart = pagination.total === 0 ? 0 : (currentPage - 1) * pagination.pageSize + 1;
   const rangeEnd = Math.min(pagination.total, currentPage * pagination.pageSize);
 
+  const tableMessage =
+    loading && data === null
+      ? { tone: "muted", text: "Loading users..." }
+      : !loading && error
+        ? { tone: "error", text: error }
+        : !loading && !error && users.length === 0
+          ? { tone: "muted", text: "No users found." }
+          : null;
+
   const replaceQuery = (next: UsersQueryState) => {
     const nextQueryString = toQueryString(next);
     const nextUrl = nextQueryString.length > 0 ? `${window.location.pathname}?${nextQueryString}` : window.location.pathname;
@@ -295,15 +311,11 @@ export function UsersTableClient({ currentUserId }: Props) {
   };
 
   return (
-    <section className="space-y-5 rounded-2xl border border-white/10 bg-white/5 p-5 shadow-[0_10px_35px_rgba(0,0,0,0.35)]">
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold text-white">Users</h2>
-        <div className="flex items-center gap-3">
-          <Link
-            href="/users/audit"
-            prefetch={false}
-            className="rounded-md border border-cyan-300/30 bg-cyan-400/15 px-3 py-1.5 text-sm text-cyan-100 hover:bg-cyan-400/25"
-          >
+    <Card>
+      <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
+        <CardTitle>Users</CardTitle>
+        <div className="flex flex-wrap items-center gap-3">
+          <Link href="/users/audit" prefetch={false} className={buttonVariants({ variant: "default", size: "sm" })}>
             View Audit Log
           </Link>
           <span className="text-sm text-slate-300">
@@ -311,268 +323,235 @@ export function UsersTableClient({ currentUserId }: Props) {
             {loading ? " · Loading..." : ""}
           </span>
         </div>
-      </div>
+      </CardHeader>
 
-      {statusHint ? (
-        <p className={`text-xs ${statusHint.tone === "error" ? "text-rose-300" : "text-cyan-200"}`}>{statusHint.message}</p>
-      ) : null}
+      <CardContent className="space-y-4">
+        {statusHint ? (
+          <p className={cn("text-xs", statusHint.tone === "error" ? "text-rose-300" : "text-cyan-200")}>{statusHint.message}</p>
+        ) : null}
 
-      <form
-        className="grid gap-3 rounded-xl border border-white/10 bg-black/20 p-4 md:grid-cols-5"
-        onSubmit={(event) => {
-          event.preventDefault();
-          replaceQuery({
-            query: formState.query.trim(),
-            role: parseRole(formState.role),
-            status: parseStatus(formState.status),
-            page: DEFAULT_PAGE,
-            pageSize: parsePageSize(formState.pageSize),
-          });
-        }}
-      >
-        <label className="text-xs font-semibold uppercase tracking-wide text-slate-400 md:col-span-2">
-          Search Email
-          <input
-            type="text"
-            name="query"
-            value={formState.query}
-            onChange={(event) => setFormState((current) => ({ ...current, query: event.target.value }))}
-            placeholder="user@example.com"
-            className="mt-2 w-full rounded-md border border-white/10 bg-black/40 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500"
-          />
-        </label>
+        <form
+          className="grid gap-3 rounded-xl border border-white/10 bg-black/20 p-4 md:grid-cols-5"
+          onSubmit={(event) => {
+            event.preventDefault();
+            replaceQuery({
+              query: formState.query.trim(),
+              role: parseRole(formState.role),
+              status: parseStatus(formState.status),
+              page: DEFAULT_PAGE,
+              pageSize: parsePageSize(formState.pageSize),
+            });
+          }}
+        >
+          <label className="space-y-2 text-xs font-semibold uppercase tracking-wide text-slate-400 md:col-span-2">
+            <span>Search Email</span>
+            <Input
+              type="text"
+              name="query"
+              value={formState.query}
+              onChange={(event) => setFormState((current) => ({ ...current, query: event.target.value }))}
+              placeholder="user@example.com"
+            />
+          </label>
 
-        <label className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-          Role
-          <select
-            name="role"
-            value={formState.role}
-            onChange={(event) => setFormState((current) => ({ ...current, role: event.target.value }))}
-            className="mt-2 w-full rounded-md border border-white/10 bg-black/40 px-3 py-2 text-sm text-slate-100"
-          >
-            <option value="">All roles</option>
-            <option value="viewer">viewer</option>
-            <option value="operator">operator</option>
-            <option value="admin">admin</option>
-          </select>
-        </label>
+          <label className="space-y-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+            <span>Role</span>
+            <Select
+              name="role"
+              value={formState.role}
+              onChange={(event) => setFormState((current) => ({ ...current, role: event.target.value }))}
+            >
+              <option value="">All roles</option>
+              <option value="viewer">viewer</option>
+              <option value="operator">operator</option>
+              <option value="admin">admin</option>
+            </Select>
+          </label>
 
-        <label className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-          Status
-          <select
-            name="status"
-            value={formState.status}
-            onChange={(event) => setFormState((current) => ({ ...current, status: event.target.value }))}
-            className="mt-2 w-full rounded-md border border-white/10 bg-black/40 px-3 py-2 text-sm text-slate-100"
-          >
-            <option value="">All statuses</option>
-            <option value="active">active</option>
-            <option value="disabled">disabled</option>
-          </select>
-        </label>
+          <label className="space-y-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+            <span>Status</span>
+            <Select
+              name="status"
+              value={formState.status}
+              onChange={(event) => setFormState((current) => ({ ...current, status: event.target.value }))}
+            >
+              <option value="">All statuses</option>
+              <option value="active">active</option>
+              <option value="disabled">disabled</option>
+            </Select>
+          </label>
 
-        <label className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-          Page Size
-          <select
-            name="pageSize"
-            value={formState.pageSize}
-            onChange={(event) => setFormState((current) => ({ ...current, pageSize: event.target.value }))}
-            className="mt-2 w-full rounded-md border border-white/10 bg-black/40 px-3 py-2 text-sm text-slate-100"
-          >
-            {PAGE_SIZE_OPTIONS.map((size) => (
-              <option key={size} value={size}>
-                {size}
-              </option>
-            ))}
-          </select>
-        </label>
+          <label className="space-y-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+            <span>Page Size</span>
+            <Select
+              name="pageSize"
+              value={formState.pageSize}
+              onChange={(event) => setFormState((current) => ({ ...current, pageSize: event.target.value }))}
+            >
+              {PAGE_SIZE_OPTIONS.map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </Select>
+          </label>
 
-        <div className="flex items-center justify-end gap-2 md:col-span-5">
-          <button
-            type="button"
-            onClick={() => {
-              setFormState({
-                query: "",
-                role: "",
-                status: "",
-                pageSize: String(DEFAULT_PAGE_SIZE),
-              });
-              window.history.replaceState(null, "", window.location.pathname);
-              setCurrentQuery({
-                query: "",
-                role: null,
-                status: null,
-                page: DEFAULT_PAGE,
-                pageSize: DEFAULT_PAGE_SIZE,
-              });
-            }}
-            className="rounded-md border border-white/15 bg-white/5 px-3 py-1.5 text-sm text-slate-200 hover:bg-white/10"
-          >
-            Reset
-          </button>
-          <button
-            type="submit"
-            className="rounded-md border border-cyan-300/30 bg-cyan-400/15 px-3 py-1.5 text-sm text-cyan-100 hover:bg-cyan-400/25"
-          >
-            Apply
-          </button>
-        </div>
-      </form>
+          <div className="flex items-center justify-end gap-2 md:col-span-5">
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setFormState({
+                  query: "",
+                  role: "",
+                  status: "",
+                  pageSize: String(DEFAULT_PAGE_SIZE),
+                });
+                window.history.replaceState(null, "", window.location.pathname);
+                setCurrentQuery({
+                  query: "",
+                  role: null,
+                  status: null,
+                  page: DEFAULT_PAGE,
+                  pageSize: DEFAULT_PAGE_SIZE,
+                });
+              }}
+            >
+              Reset
+            </Button>
+            <Button type="submit">Apply</Button>
+          </div>
+        </form>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm text-slate-200">
-          <thead className="text-xs uppercase tracking-wider text-slate-400">
-            <tr>
-              <th className="py-2 text-center">Email</th>
-              <th className="text-center">User ID</th>
-              <th className="text-center">Role</th>
-              <th className="text-center">Status</th>
-              <th className="text-center">Last Login</th>
-              <th className="text-center">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading && data === null ? (
-              <tr className="border-t border-white/10">
-                <td colSpan={6} className="py-4 text-center text-slate-400">
-                  Loading users...
-                </td>
-              </tr>
-            ) : null}
-
-            {!loading && error ? (
-              <tr className="border-t border-white/10">
-                <td colSpan={6} className="py-4 text-center text-rose-300">
-                  {error}
-                </td>
-              </tr>
-            ) : null}
-
-            {!loading && !error && users.length === 0 ? (
-              <tr className="border-t border-white/10">
-                <td colSpan={6} className="py-4 text-center text-slate-400">
-                  No users found.
-                </td>
-              </tr>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="py-2 text-center">Email</TableHead>
+              <TableHead className="text-center">User ID</TableHead>
+              <TableHead className="text-center">Role</TableHead>
+              <TableHead className="text-center">Status</TableHead>
+              <TableHead className="text-center">Last Login</TableHead>
+              <TableHead className="text-center">Action</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {tableMessage ? (
+              <TableRow>
+                <TableCell
+                  colSpan={6}
+                  className={cn("py-6 text-center", tableMessage.tone === "error" ? "text-rose-300" : "text-slate-400")}
+                >
+                  {tableMessage.text}
+                </TableCell>
+              </TableRow>
             ) : null}
 
             {!error
-              ? users.map((user) => (
-                  <tr key={user.userId} className="border-t border-white/10 align-middle">
-                    <td className="py-3 text-center font-medium text-slate-100">{user.email}</td>
-                    <td className="py-3 text-center font-mono text-xs text-slate-300">{user.userId}</td>
-                    <td className="py-3 text-center">
-                      <span className="inline-block rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-xs">
-                        {user.role}
-                      </span>
-                    </td>
-                    <td className="py-3 text-center">
-                      <span className="inline-block rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-xs">
-                        {user.status}
-                      </span>
-                    </td>
-                    <td className="py-3 text-center">{formatDateTime(user.lastLoginAt)}</td>
-                    <td className="py-3 text-center">
-                      <div className="flex items-center justify-center gap-2">
-                        <UserRoleEditor
-                          userId={user.userId}
-                          email={user.email}
-                          currentRole={user.role}
-                          onUpdated={(nextRole) => {
-                            setData((current) => {
-                              if (!current) {
-                                return current;
-                              }
+              ? users.map((user) => {
+                  const isCurrentAccount = user.userId === currentUserId && user.status === "active";
+                  const statusBusy = statusBusyUserId === user.userId;
 
-                              return {
-                                ...current,
-                                users: current.users.map((candidate) =>
-                                  candidate.userId === user.userId ? { ...candidate, role: nextRole } : candidate,
-                                ),
-                              };
-                            });
-                          }}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            void onToggleStatus(user.userId, user.status);
-                          }}
-                          className={`rounded-md border px-2.5 py-1 text-xs ${
-                            user.status === "active"
-                              ? "border-rose-300/30 bg-rose-400/15 text-rose-100 hover:bg-rose-400/25"
-                              : "border-emerald-300/30 bg-emerald-400/15 text-emerald-100 hover:bg-emerald-400/25"
-                          } disabled:opacity-60`}
-                          disabled={
-                            statusBusyUserId === user.userId || (user.userId === currentUserId && user.status === "active")
-                          }
-                        >
-                          {statusBusyUserId === user.userId
-                            ? "Updating..."
-                            : user.userId === currentUserId && user.status === "active"
-                              ? "Current Account"
-                              : user.status === "active"
-                                ? "Disable"
-                                : "Enable"}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                  return (
+                    <TableRow key={user.userId}>
+                      <TableCell className="py-3 text-center font-medium text-slate-100">{user.email}</TableCell>
+                      <TableCell className="py-3 text-center font-mono text-xs text-slate-300">{user.userId}</TableCell>
+                      <TableCell className="py-3 text-center">
+                        <Badge variant="secondary">{user.role}</Badge>
+                      </TableCell>
+                      <TableCell className="py-3 text-center">
+                        <Badge variant={user.status === "active" ? "success" : "destructive"}>{user.status}</Badge>
+                      </TableCell>
+                      <TableCell className="py-3 text-center">{formatDateTime(user.lastLoginAt)}</TableCell>
+                      <TableCell className="py-3 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <UserRoleEditor
+                            userId={user.userId}
+                            email={user.email}
+                            currentRole={user.role}
+                            onUpdated={(nextRole) => {
+                              setData((current) => {
+                                if (!current) {
+                                  return current;
+                                }
+
+                                return {
+                                  ...current,
+                                  users: current.users.map((candidate) =>
+                                    candidate.userId === user.userId ? { ...candidate, role: nextRole } : candidate,
+                                  ),
+                                };
+                              });
+                            }}
+                          />
+                          <Button
+                            size="sm"
+                            variant={
+                              isCurrentAccount ? "outline" : user.status === "active" ? "destructive" : "success"
+                            }
+                            className="min-w-[96px]"
+                            onClick={() => {
+                              void onToggleStatus(user.userId, user.status);
+                            }}
+                            disabled={statusBusy || isCurrentAccount}
+                          >
+                            {statusBusy
+                              ? "Updating..."
+                              : isCurrentAccount
+                                ? "Current Account"
+                                : user.status === "active"
+                                  ? "Disable"
+                                  : "Enable"}
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               : null}
-          </tbody>
-        </table>
-      </div>
+          </TableBody>
+        </Table>
+      </CardContent>
 
-      <div className="flex items-center justify-between rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-slate-300">
-        <p>
-          Showing {rangeStart}-{rangeEnd} of {pagination.total}
-        </p>
+      <CardFooter className="px-5 pb-5 pt-0">
+        <div className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-slate-300">
+          <p>
+            Showing {rangeStart}-{rangeEnd} of {pagination.total}
+          </p>
 
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => {
-              if (!hasPrevious) {
-                return;
-              }
+          <div className="flex items-center gap-2">
+            <Button
+              variant="secondary"
+              onClick={() => {
+                if (!hasPrevious) {
+                  return;
+                }
 
-              replaceQuery({ ...currentQuery, page: currentPage - 1 });
-            }}
-            className={`rounded-md border border-white/15 px-3 py-1.5 ${
-              hasPrevious
-                ? "bg-white/5 text-slate-200 hover:bg-white/10"
-                : "pointer-events-none bg-white/5 text-slate-500 opacity-60"
-            }`}
-            disabled={!hasPrevious}
-          >
-            Previous
-          </button>
+                replaceQuery({ ...currentQuery, page: currentPage - 1 });
+              }}
+              disabled={!hasPrevious}
+            >
+              Previous
+            </Button>
 
-          <span>
-            Page {currentPage} / {totalPages}
-          </span>
+            <span>
+              Page {currentPage} / {totalPages}
+            </span>
 
-          <button
-            type="button"
-            onClick={() => {
-              if (!hasNext) {
-                return;
-              }
+            <Button
+              variant="secondary"
+              onClick={() => {
+                if (!hasNext) {
+                  return;
+                }
 
-              replaceQuery({ ...currentQuery, page: currentPage + 1 });
-            }}
-            className={`rounded-md border border-white/15 px-3 py-1.5 ${
-              hasNext
-                ? "bg-white/5 text-slate-200 hover:bg-white/10"
-                : "pointer-events-none bg-white/5 text-slate-500 opacity-60"
-            }`}
-            disabled={!hasNext}
-          >
-            Next
-          </button>
+                replaceQuery({ ...currentQuery, page: currentPage + 1 });
+              }}
+              disabled={!hasNext}
+            >
+              Next
+            </Button>
+          </div>
         </div>
-      </div>
-    </section>
+      </CardFooter>
+    </Card>
   );
 }
