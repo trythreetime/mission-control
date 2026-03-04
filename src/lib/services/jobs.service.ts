@@ -1,10 +1,13 @@
 import "server-only";
 
+import type { Prisma } from "@prisma/client";
+
 import { db } from "@/lib/db";
 import { formatElapsed } from "@/lib/services/shared";
 import type { DashboardJob } from "@/lib/services/types";
 
 type JobStatusValue = "queued" | "running" | "success" | "failed" | "canceled";
+const JOB_STATUSES: JobStatusValue[] = ["queued", "running", "success", "failed", "canceled"];
 
 function toEta(status: JobStatusValue, queuedAt: Date, startedAt: Date | null, finishedAt: Date | null): string {
   if (finishedAt) return "--";
@@ -16,9 +19,29 @@ function toEta(status: JobStatusValue, queuedAt: Date, startedAt: Date | null, f
   return "--";
 }
 
-export async function getRecentJobs(limit = 5, status?: JobStatusValue): Promise<DashboardJob[]> {
+export async function getRecentJobs(limit = 5, status?: JobStatusValue, query?: string): Promise<DashboardJob[]> {
+  const normalizedQuery = query?.trim();
+  const matchingStatuses = normalizedQuery
+    ? JOB_STATUSES.filter((statusValue) => statusValue.includes(normalizedQuery.toLowerCase()))
+    : [];
+
+  const where: Prisma.JobWhereInput = {
+    ...(status ? { status } : {}),
+    ...(normalizedQuery
+      ? {
+          OR: [
+            { id: { contains: normalizedQuery, mode: "insensitive" } },
+            { jobNo: { contains: normalizedQuery, mode: "insensitive" } },
+            { name: { contains: normalizedQuery, mode: "insensitive" } },
+            { type: { contains: normalizedQuery, mode: "insensitive" } },
+            ...(matchingStatuses.length > 0 ? [{ status: { in: matchingStatuses } }] : []),
+          ],
+        }
+      : {}),
+  };
+
   const recentJobs = await db.job.findMany({
-    where: status ? { status } : undefined,
+    where,
     orderBy: { createdAt: "desc" },
     take: limit,
     select: {
