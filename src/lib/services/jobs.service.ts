@@ -19,20 +19,36 @@ function toEta(status: JobStatusValue, queuedAt: Date, startedAt: Date | null, f
   return "--";
 }
 
-export async function getRecentJobs(limit = 5, status?: JobStatusValue, query?: string): Promise<DashboardJob[]> {
+export async function getRecentJobs(
+  limit = 5,
+  status?: JobStatusValue,
+  query?: string,
+  owner?: string,
+): Promise<DashboardJob[]> {
   const normalizedQuery = query?.trim();
+  const normalizedOwner = owner?.trim();
+
   const matchingStatuses = normalizedQuery
     ? JOB_STATUSES.filter((statusValue) => statusValue.includes(normalizedQuery.toLowerCase()))
     : [];
 
   const where: Prisma.JobWhereInput = {
     ...(status ? { status } : {}),
+    ...(normalizedOwner
+      ? {
+          owner: {
+            contains: normalizedOwner,
+            mode: "insensitive",
+          },
+        }
+      : {}),
     ...(normalizedQuery
       ? {
           OR: [
             { id: { contains: normalizedQuery, mode: "insensitive" } },
             { jobNo: { contains: normalizedQuery, mode: "insensitive" } },
             { name: { contains: normalizedQuery, mode: "insensitive" } },
+            { owner: { contains: normalizedQuery, mode: "insensitive" } },
             { type: { contains: normalizedQuery, mode: "insensitive" } },
             ...(matchingStatuses.length > 0 ? [{ status: { in: matchingStatuses } }] : []),
           ],
