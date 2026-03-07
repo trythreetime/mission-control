@@ -1,53 +1,5 @@
-import { headers } from "next/headers";
+import { EventsListClient } from "@/components/events-list-client";
 
-import type { ApiResponse } from "@/lib/api-response";
-import type { DashboardEvent } from "@/lib/services/types";
-
-type EventsApiData = {
-  events: DashboardEvent[];
-};
-
-const fallback: EventsApiData = { events: [] };
-
-async function getEventsData(): Promise<EventsApiData> {
-  try {
-    const h = await headers();
-    const host = h.get("x-forwarded-host") ?? h.get("host");
-    const protocol = h.get("x-forwarded-proto") ?? "http";
-    const cookieHeader = h.get("cookie");
-    if (!host) return fallback;
-
-    const res = await fetch(`${protocol}://${host}/api/events?limit=100`, {
-      cache: "no-store",
-      ...(cookieHeader ? { headers: { cookie: cookieHeader } } : {}),
-    });
-    if (!res.ok) return fallback;
-
-    const payload = (await res.json()) as ApiResponse<EventsApiData>;
-    return payload.ok ? payload.data : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-export default async function EventsPage() {
-  const { events } = await getEventsData();
-
-  return (
-    <section className="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-[0_10px_35px_rgba(0,0,0,0.35)]">
-      <h2 className="mb-4 text-lg font-semibold text-white">Event Stream</h2>
-      <ul className="space-y-2 text-sm">
-        {events.length === 0 ? <li className="text-slate-400">No events found.</li> : null}
-        {events.map((event) => (
-          <li key={event.id} className="rounded-lg border border-white/10 bg-black/30 px-3 py-2.5">
-            <span className="mr-2 text-slate-400">{event.time}</span>
-            <span className="mr-2 rounded-md border border-white/10 bg-white/5 px-1.5 py-0.5 text-xs text-slate-200">
-              {event.level}
-            </span>
-            <span className="text-slate-200">{event.message}</span>
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
+export default function EventsPage() {
+  return <EventsListClient />;
 }
