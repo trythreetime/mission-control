@@ -20,14 +20,16 @@ function proxyError(status: number, message: string, details?: unknown) {
 }
 
 export async function POST(request: Request) {
-  const proxyEnabled = process.env.NODE_ENV !== "production" || process.env.PAGE_AGENT_PROXY_ENABLED === "true";
+  const isProduction = process.env.NODE_ENV === "production";
+  const proxyFlag = process.env.PAGE_AGENT_PROXY_ENABLED;
+  const proxyEnabled = !isProduction || proxyFlag !== "false";
 
   if (!proxyEnabled) {
     return proxyError(403, "Page Agent proxy is disabled in production.");
   }
 
-  const apiKey = process.env.PAGE_AGENT_API_KEY;
-  const baseURL = (process.env.PAGE_AGENT_BASE_URL ?? DEFAULT_PAGE_AGENT_BASE_URL).replace(/\/$/, "");
+  const apiKey = process.env.PAGE_AGENT_API_KEY?.trim();
+  const baseURL = (process.env.PAGE_AGENT_BASE_URL?.trim() || DEFAULT_PAGE_AGENT_BASE_URL).replace(/\/$/, "");
 
   if (!apiKey) {
     return proxyError(500, "Server is missing PAGE_AGENT_API_KEY.");

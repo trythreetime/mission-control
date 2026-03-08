@@ -7,8 +7,8 @@ type PageAgentModule = typeof import("page-agent");
 type PageAgentInstance = InstanceType<PageAgentModule["PageAgent"]>;
 type AgentStatus = "idle" | "running" | "completed" | "error";
 
-const PAGE_AGENT_MODEL = process.env.NEXT_PUBLIC_PAGE_AGENT_MODEL ?? "qwen3.5-plus";
-const PAGE_AGENT_LANGUAGE = process.env.NEXT_PUBLIC_PAGE_AGENT_LANGUAGE ?? "zh-CN";
+const PAGE_AGENT_MODEL = (process.env.NEXT_PUBLIC_PAGE_AGENT_MODEL ?? "qwen3.5-plus").trim();
+const PAGE_AGENT_LANGUAGE = (process.env.NEXT_PUBLIC_PAGE_AGENT_LANGUAGE ?? "zh-CN").trim();
 const PAGE_AGENT_PROXY_BASE_URL = "/api/page-agent";
 const PAGE_AGENT_PROXY_TOKEN = "server-proxy";
 

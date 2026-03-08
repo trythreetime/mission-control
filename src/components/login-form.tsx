@@ -181,7 +181,10 @@ export function LoginForm({ className, initialHint }: Props) {
         {hint ? <p className="text-xs text-cyan-200">{hint}</p> : null}
 
         <button
+          id="login-submit-button"
           type="submit"
+          name="login-submit"
+          aria-label={mode === "password" ? "Sign in" : otpSent ? "Verify OTP" : "Send OTP"}
           disabled={!canSubmit || busy}
           className="mt-1 w-full rounded-xl border border-white/20 bg-white/10 px-3 py-2.5 font-medium text-white transition hover:bg-white/20 disabled:opacity-60"
         >
