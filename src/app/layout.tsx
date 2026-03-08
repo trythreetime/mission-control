@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+
+import { PageAgentEntry } from "@/components/page-agent-entry";
+
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -13,7 +16,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="bg-[#060b18] text-slate-100 antialiased">{children}</body>
+      <body className="bg-[#060b18] text-slate-100 antialiased">
+        {children}
+        <PageAgentEntry />
+      </body>
     </html>
   );
 }

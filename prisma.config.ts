@@ -3,6 +3,12 @@
 import "dotenv/config";
 import { defineConfig } from "prisma/config";
 
+const datasourceUrl = process.env["DIRECT_URL"] ?? process.env["DATABASE_URL"];
+
+if (!datasourceUrl) {
+  throw new Error("Prisma datasource URL is not set. Define DIRECT_URL or DATABASE_URL.");
+}
+
 export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
@@ -10,6 +16,6 @@ export default defineConfig({
     seed: "node --experimental-strip-types prisma/seed.ts",
   },
   datasource: {
-    url: process.env["DIRECT_URL"] ?? process.env["DATABASE_URL"],
+    url: datasourceUrl,
   },
 });
